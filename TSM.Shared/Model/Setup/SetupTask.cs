@@ -20,7 +20,7 @@ namespace TMS.Shared.Model.Setup
         public int TagId { get; set; } = 0;
         public int StatusId { get; set; } = 0;
         public DateTime DueDate { get; set; }  = DateTime.Now;
-
+        public int ProjectId { get; set; }
         public DateTime CreatedOn { get; set; } = DateTime.Now;
 
         [StringLength(30)]
@@ -41,6 +41,7 @@ namespace TMS.Shared.Model.Setup
         public int TagId { get; set; } = 0;
         public int StatusId { get; set; } = 0;
         public DateTime DueDate { get; set; } = DateTime.Now;
+        public int ProjectId { get; set; }
         public DateTime CreatedOn { get; set; } = DateTime.Now;
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime? UpdatedOn { get; set; } = null;

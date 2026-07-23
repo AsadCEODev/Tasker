@@ -18,6 +18,7 @@ namespace TMS.Shared.Model.Setup
 
         [MaxLength(50)]
         public string FullName { get; set; } = string.Empty;
+        public string FatherName { get; set; } = string.Empty;
 
         [MaxLength(20)]
         public string PhoneNo { get; set; } = string.Empty;
@@ -51,6 +52,9 @@ namespace TMS.Shared.Model.Setup
 
         [Required(ErrorMessage = "Full Name is required.")]
         public string FullName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Father Name is required.")]
+        public string FatherName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Phone Number is required.")]
         [Phone(ErrorMessage = "Invalid Phone Number.")]

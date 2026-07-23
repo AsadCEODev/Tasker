@@ -13,6 +13,7 @@ namespace TMS.API.Data
         public DbSet<SetupTask> SetupTasks { get; set; }
         public DbSet<SetupTag> SetupTags { get; set; }
         public DbSet<SetupStatus> SetupStatuses { get; set; }
+        public DbSet<SetupProject> SetupProjects { get; set; }
 
     }
 

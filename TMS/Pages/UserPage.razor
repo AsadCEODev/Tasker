@@ -154,6 +154,7 @@
                                     <tr>
                                         <th>User Name</th>
                                         <th>Full Name</th>
+                                        <th>Father Name</th>
                                         <th>Email</th>
                                         <th>Phone No</th>
                                         <th>STATUS</th>
@@ -172,6 +173,7 @@
                                             <tr>
                                                 <td><span>@user.UserName</span></td>
                                                 <td><span>@user.FullName</span></td>
+                                                <td><span>@user.FatherName</span></td>
                                                 <td><span>@user.Email</span></td>
                                                 <td><span>@user.PhoneNo</span></td>
                                                 <td>
@@ -255,6 +257,11 @@
                 <label class="form-label">Full Name<span class="text-danger">*</span></label>
                 <InputText class="form-control" @bind-Value="userDto.FullName"  />
                 <ValidationMessage For="@(() => userDto.FullName)" />
+            </div>
+            <div class="col-md-6 mb-1">
+                <label class="form-label">Full Name<span class="text-danger">*</span></label>
+                <InputText class="form-control" @bind-Value="userDto.FatherName" />
+                <ValidationMessage For="@(() => userDto.FatherName)" />
             </div>
             <div class="col-md-6 mb-1">
                 <label class="form-label">Phone<span class="text-danger">*</span></label>

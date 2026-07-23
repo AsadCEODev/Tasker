@@ -7,6 +7,7 @@
 
 @inject ITaskClientService thisService;
 @inject ITagsClientService tagService;
+@inject ISetupProjectClientService projectService;
 
 
 <!-- BEGIN: Content-->
@@ -190,21 +191,20 @@
                                                   TValue="int"
                                                   Label="Tag"
                                                   Items="@tagList"
-                                                  
                                                   ValueSelector="@(u => u.Id)"
                                                   TextSelector="@(u => u.TagTitle)"/>
 
                                             </div>
 
                                             <div>
-                                                <KrSelect2 TItem="SetupTagDto"
+                                                <KrSelect2 TItem="SetupProjectDto"
                                                            TValue="int"
-                                                           Label="Tag"
+                                                           Label="Project"
                                                            IsMultiple="true"
-                                                           Items="@tagList"
+                                                           Items="@projectsList"
                                                            ValueSelector="@(u => u.Id)"
-                                                           TextSelector="@(u => u.TagTitle)"
-                                                           @bind-Values="selectedTagIds" />
+                                                           TextSelector="@(u => u.ProjectName)"
+                                                           @bind-Values="selectedProjectIds" />
                                             </div>
 
                                             <div class="mb-1">
@@ -243,8 +243,9 @@
 
 
     private List<SetupTagDto> tagList = new();
+    private List<SetupProjectDto> projectsList = new();
 
-    private List<int> selectedTagIds = new();
+    private List<int> selectedProjectIds = new();
 
     private int currentPage = 1;
     private int pageSize = 10;
@@ -267,8 +268,9 @@
         {
             isLoading = true;
 
-           // pagedResult = await thisService.GetAll(currentPage, pageSize);
+            // pagedResult = await thisService.GetAll(currentPage, pageSize);
             tagList = await tagService.GetAll();
+            projectsList = await projectService.GetAll();
 
         }
         catch (Exception ex)
