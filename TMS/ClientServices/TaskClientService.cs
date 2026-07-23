@@ -9,7 +9,7 @@ namespace TMS.ClientServices
     public class TaskClientService : ITaskClientService
     {
         private readonly HttpClient httpClient;
-        private readonly string baseUrl = "api/Task";
+        private readonly string baseUrl = "api/Tasks";
         public TaskClientService(HttpClient _httpClient)
         {
             httpClient = _httpClient;

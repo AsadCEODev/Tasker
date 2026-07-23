@@ -12,6 +12,7 @@ namespace TMS.API.Services
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<ITagsService, TagsService>();
             services.AddScoped<IStatusService, StatusService>();
+            services.AddScoped<ISetupProjectService, SetupProjectService>();
             
             return services;
         }

@@ -42,3 +42,11 @@ window.menuFunctions = {
     }
 };
 
+window.hideBootstrapModal = (modalId) => {
+    const modalElement = document.getElementById(modalId);
+    if (modalElement) {
+        const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+        modalInstance.hide();
+    }
+};
+

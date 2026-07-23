@@ -16,27 +16,39 @@ namespace TMS.API.Services.SetupServices
         }
 
 
-       
+
+
+        // Common Base Query Method
+        private IQueryable<SetupTask> GetBaseSetupTaskQuery()
+        {
+            return dbContext.SetupTasks
+                .AsNoTracking()
+                .Include(x => x.TagObj)
+                .Include(x => x.StatusObj)
+                .Include(x => x.SetupProject)
+                .Include(x => x.UserObj);
+        }
 
         public async Task<PaginationResponse<SetupTaskDto>> GetAll(int pageNumber = 1, int pageSize = 10)
         {
             try
             {
-                var totalRecords = await dbContext.SetupTasks.CountAsync();
+                var query = GetBaseSetupTaskQuery();
 
-                var lst = await dbContext.SetupTasks
+                var totalRecords = await query.CountAsync();
+
+                var items = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
+                    .ProjectToType<SetupTaskDto>()
                     .ToListAsync();
 
-                var items = lst.Adapt<List<SetupTaskDto>>();
                 return new PaginationResponse<SetupTaskDto>
                 {
                     Data = items,
-                   PageIndex = pageNumber,
+                    PageIndex = pageNumber,
                     PageSize = pageSize,
                     TotalCount = totalRecords
-                   
                 };
             }
             catch (Exception ex)
@@ -45,16 +57,18 @@ namespace TMS.API.Services.SetupServices
             }
         }
 
-        public async Task<SetupTaskDto> GetById(long id)
+        public async Task<SetupTaskDto?> GetById(long id)
         {
             try
             {
-                var found = await dbContext.SetupTasks.FirstOrDefaultAsync(x => x.Id == id);
-                return found.Adapt<SetupTaskDto>() ?? new();
+                return await GetBaseSetupTaskQuery()
+                    .Where(x => x.Id == id)
+                    .ProjectToType<SetupTaskDto>()
+                    .FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw;
             }
         }
 
@@ -63,7 +77,7 @@ namespace TMS.API.Services.SetupServices
             try
             {
 
-                var found = dbContext.SetupTasks.FirstOrDefaultAsync(x => x.TaskTitle.ToLower() == model.TaskTitle.ToLower());
+                var found = await dbContext.SetupTasks.FirstOrDefaultAsync(x => x.TaskTitle.ToLower() == model.TaskTitle.ToLower() && x.ProjectId == model.ProjectId);
                 if (found != null)
                 {
                     return -1;
@@ -96,6 +110,7 @@ namespace TMS.API.Services.SetupServices
                 found.DueDate = model.DueDate;
                 found.TagId = model.TagId;
                 found.StatusId = model.StatusId;
+                found.UserId = model.UserId ?? null;
                 found.UpdatedBy ="Admin";
                 found.UpdatedOn = DateTime.Now;
 

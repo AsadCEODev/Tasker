@@ -1,14 +1,15 @@
 ﻿<style>
-    .toast-container {
-        /* Positioning: Top Right */
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
+    /* Global screen context fix for Modal Overlays */
+    .custom-toast-wrapper {
+        position: fixed !important;
+        top: 25px !important;
+        right: 25px !important;
+        z-index: 999999 !important; /* Modal (1050/1055) se kafi high */
+        pointer-events: auto;
     }
 
     .toast-animate {
-        animation: slideInRight 0.5s ease-out forwards;
+        animation: slideInRight 0.3s ease-out forwards;
     }
 
     @@keyframes slideInRight {
@@ -22,16 +23,28 @@
             opacity: 1;
         }
     }
+
+    .custom-toast-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .custom-toast-error {
+        background-color: #dc3545;
+        color: white;
+    }
 </style>
 
 @if (IsVisible)
 {
-    <div class="toast-container toast-animate">
+    <div class="custom-toast-wrapper toast-animate">
         <div class="toast show align-items-center border-0 @(Type == "success" ? "custom-toast-success" : "custom-toast-error")"
-             style="min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" role="alert">
-            <div class="d-flex">
-                <div class="toast-body" style="font-weight: 500;">@Message</div>
-                <button type="button" class="btn-close me-2 m-auto" @onclick="Hide"></button>
+             style="min-width: 300px; box-shadow: 0 8px 16px rgba(0,0,0,0.3);" role="alert">
+            <div class="d-flex align-items-center">
+                <div class="toast-body flex-grow-1" style="font-weight: 500;">
+                    @Message
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2" @onclick="Hide"></button>
             </div>
         </div>
     </div>
@@ -42,19 +55,36 @@
     public string Message { get; set; } = "";
     public string Type { get; set; } = "success";
 
-    public void Show(string message, string type = "success")
+    private CancellationTokenSource? _cts;
+
+    public async void Show(string message, string type = "success")
     {
+        // Cancel existing timer if toast is triggered again quickly
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+
         Message = message;
         Type = type;
         IsVisible = true;
         StateHasChanged();
 
-        Task.Delay(3000).ContinueWith(_ =>
+        try
         {
+            // Proper Async Auto-Hide Logic
+            await Task.Delay(3000, _cts.Token);
             IsVisible = false;
-            InvokeAsync(StateHasChanged);
-        });
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (TaskCanceledException)
+        {
+            // Ignore timer cancel when new toast triggers
+        }
     }
 
-    public void Hide() => IsVisible = false;
+    public void Hide()
+    {
+        IsVisible = false;
+        _cts?.Cancel();
+        StateHasChanged();
+    }
 }

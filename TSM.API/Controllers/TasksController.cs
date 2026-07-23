@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TMS.API.Services.SetupServices;
 using TMS.Shared.Model.Setup;
+using TMS.Shared.Pagination;
 
 namespace TMS.API.Controllers
 {
@@ -27,7 +28,8 @@ namespace TMS.API.Controllers
                 {
                     return NotFound(lst);
                 }
-                return Ok(lst);
+                var converted = lst.Adapt<PaginationResponse<SetupTaskDto>>();
+                return Ok(converted);
 
             }
             catch (Exception ex)
@@ -41,12 +43,13 @@ namespace TMS.API.Controllers
         {
             try
             {
-                var lst = await thisService.GetById(id);
-                if (lst == null)
+                var found = await thisService.GetById(id);
+                if (found == null)
                 {
-                    return NotFound(lst);
+                    return NotFound(found);
                 }
-                return Ok(lst);
+                var converted = found.Adapt<SetupTaskDto>();
+                return Ok(converted);
 
             }
             catch (Exception ex)

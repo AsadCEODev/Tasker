@@ -58,6 +58,22 @@ namespace TMS.API.Services.SetupServices
                 throw;
             }
         }
+        public async Task<List<SetupUser>> GetUsersList()
+        {
+            try
+            {
+                var list = dbContext.SetupUsers.ToList();
+                return list;
+            }
+            catch (Exception)
+            {
+                // Exception re-throw karein taake stack trace zaya na ho
+                throw;
+            }
+        }
+
+
+
         public async Task<SetupUser> GetById(long id)
         {
             try
@@ -186,6 +202,7 @@ namespace TMS.API.Services.SetupServices
     public interface ISetupUserService
     {
         Task<PaginationResponse<SetupUser>> GetAll(int pageIndex, int pageSize,string? queryString);
+        Task<List<SetupUser>> GetUsersList();
         Task<SetupUser> GetById(long id);
         Task<int> Save(SetupUser model);
         Task<int> Update(SetupUser model);

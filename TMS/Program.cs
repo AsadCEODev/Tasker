@@ -11,6 +11,7 @@ builder.Services.AddScoped<IUserClientService, UserClientService>();
 builder.Services.AddScoped<ITaskClientService, TaskClientService>();
 builder.Services.AddScoped<ITagsClientService, TagsClientService>();
 builder.Services.AddScoped<IStatusClientService, StatusClientService>();
+builder.Services.AddScoped<ISetupProjectClientService, SetupProjectClientService>();
 
 var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"];
 

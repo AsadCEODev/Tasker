@@ -25,6 +25,24 @@ namespace TMS.ClientServices
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<List<SetupUserDto>> GetUsersList()
+        {
+            try
+            {
+                var response = await httpClient.GetAsync($"{baseUrl}/GetUsersList");
+                if (response.IsSuccessStatusCode)
+                {
+                    var lst = await response.Content.ReadFromJsonAsync<List<SetupUserDto>>();
+                    return lst ?? new();
+                }
+                return new();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
         public async Task<SetupUserDto> GetById(long id)
         {
             try
@@ -120,11 +138,12 @@ namespace TMS.ClientServices
 
     public interface IUserClientService
     {
-        public Task<PaginationResponse<SetupUserDto>> GetAll(int pageIndex,int pageSize, string queryString);
-        public Task<SetupUserDto> GetById(long id);
-        public Task<int> Save(SetupUserDto setupUserDto);
-        public Task<int> Update(SetupUserDto setupUserDto);
-        public Task<bool> Delete(long id);
-        public Task<UserSummary?> GetUsersSummary();
+        Task<PaginationResponse<SetupUserDto>> GetAll(int pageIndex,int pageSize, string queryString);
+        Task<List<SetupUserDto>> GetUsersList();
+        Task<SetupUserDto> GetById(long id);
+        Task<int> Save(SetupUserDto setupUserDto);
+        Task<int> Update(SetupUserDto setupUserDto);
+        Task<bool> Delete(long id);
+        Task<UserSummary?> GetUsersSummary();
     }
 }

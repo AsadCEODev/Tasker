@@ -30,6 +30,25 @@ namespace TMS.API.Controllers
             };
             return Ok(result);
         }
+
+        [HttpGet("GetUsersList")]
+        public async Task<IActionResult> GetUsersList()
+        {
+            try
+            {
+                var lst = await thisService.GetUsersList();
+                if(lst == null)
+                {
+                    return BadRequest(lst);
+                }
+                return Ok(lst);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         [HttpGet("GetById")]
         public async Task<IActionResult> GetById(int id)
         {
