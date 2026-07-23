@@ -1,0 +1,54 @@
+﻿@implements IDisposable
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+@inherits LayoutComponentBase
+
+<NavMenu />
+
+<SideBar />
+
+<div class="app-content content">
+    <div class="content-wrapper">
+        <div class="content-body">
+            @Body
+        </div>
+    </div>
+</div>
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initVuexy");
+            await JS.InvokeVoidAsync("loadTheme");
+            await JS.InvokeVoidAsync("feather.replace");
+        }
+    }
+
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        // Page render hone ka wait
+        await Task.Delay(50);
+
+        await JS.InvokeVoidAsync("initVuexy");
+
+        // Active menu update
+        var path = Nav.ToBaseRelativePath(e.Location);
+        await JS.InvokeVoidAsync("menuFunctions.updateActiveMenu", "/" + path);
+
+        await JS.InvokeVoidAsync("loadTheme");
+        await JS.InvokeVoidAsync("feather.replace");
+    }
+
+    public void Dispose()
+    {
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+}

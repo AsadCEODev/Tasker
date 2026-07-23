@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="TMS/TMS.csproj" />
+  <Project Path="TSM.API/TSM.API.csproj" />
+  <Project Path="TSM.Shared/TMS.Shared.csproj" />
+</Solution>

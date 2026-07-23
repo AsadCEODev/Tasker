@@ -1,0 +1,177 @@
+﻿@typeparam TItem
+@typeparam TValue
+@implements IDisposable
+
+<div class="mb-3 position-relative" @ref="_elementRef">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="form-label">@Label</label>
+    }
+
+    <!-- Main Select Box (Jisme click karne par dropdown khulega) -->
+    <div class="form-control d-flex justify-content-between align-items-center cursor-pointer bg-white"
+         @onclick="ToggleDropdown"
+         style="min-height: 38px; cursor: pointer; user-select: none;">
+        
+        <div class="d-flex flex-wrap gap-1 align-items-center overflow-hidden" style="max-height: 70px;">
+            @if (IsMultiple)
+            {
+                var selectedItems = GetSelectedItems();
+                if (!selectedItems.Any())
+                {
+                    <span class="text-muted">-- Select --</span>
+                }
+                else
+                {
+                    @foreach (var item in selectedItems)
+                    {
+                        var val = ValueSelector(item);
+                        var text = TextSelector(item);
+                        <span class="badge bg-primary d-inline-flex align-items-center gap-1 py-1 px-2" style="font-size: 0.85rem;">
+                            @text
+                            <span @onclick:stopPropagation="true" @onclick="() => RemoveItem(val)" style="cursor: pointer; font-weight: bold;">&times;</span>
+                        </span>
+                    }
+                }
+            }
+            else
+            {
+                var selectedItem = Items.FirstOrDefault(x => EqualityComparer<TValue>.Default.Equals(ValueSelector(x), Value));
+                @if (selectedItem != null)
+                {
+                    <span>@TextSelector(selectedItem)</span>
+                }
+                else
+                {
+                    <span class="text-muted">-- Select --</span>
+                }
+            }
+        </div>
+        <i class="fa fa-chevron-down text-muted small ms-2"></i>
+    </div>
+
+    <!-- Dropdown Panel (Search bar aur options list) -->
+    @if (_isOpen)
+    {
+        <div class="card shadow-sm border position-absolute w-100 mt-1 shadow-lg" style="z-index: 1050; max-height: 250px; display: flex; flex-direction: column;">
+            
+            <!-- Search Bar inside dropdown -->
+            <div class="p-2 border-bottom bg-light">
+                <input type="text"
+                       class="form-control form-control-sm"
+                       placeholder="Search..."
+                       @bind="_searchQuery"
+                       @bind:event="oninput"
+                       @onclick:stopPropagation="true"
+                       autofocus />
+            </div>
+
+            <!-- Options List -->
+            <div class="overflow-auto " style="max-height: 180px;">
+                @{
+                    var filteredItems = string.IsNullOrWhiteSpace(_searchQuery)
+                        ? Items
+                        : Items.Where(x => TextSelector(x).Contains(_searchQuery, StringComparison.OrdinalIgnoreCase));
+                }
+
+                @if (!filteredItems.Any())
+                {
+                    <div class="text-muted text-center py-2 small">No results found</div>
+                }
+                else
+                {
+                    @foreach (var item in filteredItems)
+                    {
+                        var val = ValueSelector(item);
+                        var text = TextSelector(item);
+                        bool isSelected = IsMultiple ? (Values != null && Values.Contains(val)) : EqualityComparer<TValue>.Default.Equals(val, Value);
+
+                        <div class=" rounded cursor-pointer option-item @(isSelected ? "bg-primary text-white" : "")"
+                             style="padding: 10px;cursor: pointer;"
+                             @onclick="() => SelectItem(val)">
+                            @text
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public IEnumerable<TItem> Items { get; set; } = Enumerable.Empty<TItem>();
+    [Parameter] public Func<TItem, TValue> ValueSelector { get; set; } = default!;
+    [Parameter] public Func<TItem, string> TextSelector { get; set; } = default!;
+    [Parameter] public bool IsMultiple { get; set; } = false;
+
+    [Parameter] public TValue? Value { get; set; }
+    [Parameter] public EventCallback<TValue?> ValueChanged { get; set; }
+
+    [Parameter] public List<TValue>? Values { get; set; }
+    [Parameter] public EventCallback<List<TValue>?> ValuesChanged { get; set; }
+
+    private bool _isOpen = false;
+    private string _searchQuery = "";
+    private ElementReference _elementRef;
+
+    private void ToggleDropdown()
+    {
+        _isOpen = !_isOpen;
+        if (_isOpen) _searchQuery = "";
+    }
+
+    private IEnumerable<TItem> GetSelectedItems()
+    {
+        if (Values == null || !Values.Any()) return Enumerable.Empty<TItem>();
+        return Items.Where(x => Values.Contains(ValueSelector(x)));
+    }
+
+    private async Task SelectItem(TValue val)
+    {
+        if (IsMultiple)
+        {
+            Values ??= new List<TValue>();
+            if (Values.Contains(val))
+            {
+                Values.Remove(val);
+            }
+            else
+            {
+                Values.Add(val);
+            }
+            await ValuesChanged.InvokeAsync(Values);
+        }
+        else
+        {
+            Value = val;
+            await ValueChanged.InvokeAsync(Value);
+            _isOpen = false;
+        }
+    }
+
+    private async Task RemoveItem(TValue val)
+    {
+        if (Values != null && Values.Contains(val))
+        {
+            Values.Remove(val);
+            await ValuesChanged.InvokeAsync(Values);
+        }
+    }
+
+    public void Dispose()
+    {
+        // Cleanup if needed
+    }
+}
+
+<style>
+    .option-item:hover {
+        background-color: rgba(115, 103, 240, 0.12) !important;
+        color: #7367f0 !important;
+    }
+    .option-item.bg-primary:hover {
+        background-color: #7367f0 !important;
+        color: #fff !important;
+    }
+</style>

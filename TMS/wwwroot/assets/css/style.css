@@ -1,0 +1,20 @@
+
+.navigation .nav-item .active {
+	background-color: #7367f0 !important; /* Aapka preferred purple color */
+	color: #ffffff !important; /* Text color white */
+	border-radius: 6px; /* Agar rounded corners chahiye */
+}
+
+	/* Jab item active ho to icon ka color bhi white kar dein */
+	.navigation .nav-item .active i {
+		color: #ffffff !important;
+	}
+
+/* Sidebar ka text color default state mein (jab active na ho) */
+.navigation .nav-item a {
+	color: #6e6b7b !important; /* Dark color for normal state */
+}
+
+.navigation .has-sub.open .menu-content {
+	display: block !important;
+}
