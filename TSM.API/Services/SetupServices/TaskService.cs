@@ -25,7 +25,7 @@ namespace TMS.API.Services.SetupServices
                 .AsNoTracking()
                 .Include(x => x.TagObj)
                 .Include(x => x.StatusObj)
-                .Include(x => x.SetupProject)
+                .Include(x => x.ProjectObj)
                 .Include(x => x.UserObj);
         }
 

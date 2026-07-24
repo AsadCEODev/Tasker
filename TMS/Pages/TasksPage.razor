@@ -73,62 +73,110 @@
                 <div class="content-header row">
                     
                 </div>
-                <div class="content-body">
+                <div class="content-body h-100 overflow-hidden">
                     <div class="body-content-overlay"></div>
-                    <div class="todo-app-list">
-                        <!-- Todo search starts -->
-                        <div class="app-fixed-search d-flex align-items-center">
-                            <div class="sidebar-toggle d-block d-lg-none ms-1">
+    
+                    <!-- Main Scrollable App Container -->
+                    <div class="todo-app-list d-flex flex-column h-100">
+        
+                        <!-- Todo Search Header (Fixed) -->
+                        <div class="app-fixed-search d-flex align-items-center p-2 border-bottom bg-white flex-shrink-0 gap-2">
+                            <div class="sidebar-toggle d-block d-lg-none">
                                 <i data-feather="menu" class="font-medium-5"></i>
                             </div>
-                            <div class="d-flex align-content-center justify-content-between w-100">
+            
+                            <div class="d-flex align-items-center justify-content-between w-100 gap-2 flex-wrap flex-md-nowrap">
+                                <!-- Search Input -->
                                 <div class="input-group input-group-merge">
                                     <span class="input-group-text"><i data-feather="search" class="text-muted"></i></span>
-                                    <input type="text" class="form-control" id="todo-search" placeholder="Search task" aria-label="Search..." aria-describedby="todo-search" />
+                                    <input type="text" class="form-control" id="todo-search-input" placeholder="Search task..." aria-label="Search..." />
                                 </div>
-                            </div>
-                            <div class="d-flex align-content-center justify-content-between w-100">
-                                <div class="input-group input-group-merge">
-                                    <label>From Date</label>
-                                    <input type="date" class="form-control" id="todo-search"   />
-                                </div>
-                            
-                            
-                                <div class="input-group input-group-merge">
-                                    <label>To Date</label>
-                                    <input type="date" class="form-control" id="todo-search"  />
+
+                                <!-- From & To Date -->
+                                <div class="d-flex align-items-center gap-2 w-100 w-md-auto">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <label class="form-label mb-0 text-nowrap small text-muted">From Date:</label>
+                                        <input type="date" class="form-control form-control-sm" @bind="@fromDate" />
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <label class="form-label mb-0 text-nowrap small text-muted">To Date:</label>
+                                        <input type="date" class="form-control form-control-sm" @bind="@toDate" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <!-- Todo search ends -->
-                   
-                        <!-- Todo Cards View starts -->
-                       
-                        <div class="container-fluid py-3" >
-                            <!-- row-cols-xl-4 ka matlab Large screen par 1 line me 4 cards aayenge -->
-                            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-2">
+                        <!-- Todo Cards Scrollable Container starts -->
+                        <div class="todo-cards-scroll-container p-2 flex-grow-1 overflow-y-auto">
+                            <div class="row row-cols-1 row-cols-md-3 row-cols-xl-4 g-2">
                                 @if (taskList != null && taskList.Data.Any())
                                 {
                                     @foreach (var task in taskList.Data)
                                     {
                                         <div class="col">
-                                            <TaskCard Task="task" />
+                                            <div class="card shadow-sm border-0 h-100 rounded-3 overflow-hidden">
+
+                                                <!-- Colored Header Indicator -->
+                                                <div class="card-header p-2 text-white d-flex justify-content-between align-items-center @GetPriorityHeader(task.TagObj?.TagTitle)">
+                                                    <h6 class="fw-bold text-white text-truncate mb-0 fs-6" style="max-width: 70%;" title="@task.TaskTitle">
+                                                        @task.TaskTitle
+                                                    </h6>
+                                                    <span class="badge bg-white text-dark fw-semibold px-2 py-1 text-uppercase" style="font-size: 0.68rem;">
+                                                        @(task.TagObj?.TagTitle ?? "N/A")
+                                                    </span>
+                                                </div>
+
+                                                <!-- Card Body -->
+                                                <div class="card-body p-2 d-flex flex-column justify-content-between">
+                                    
+                                                    <div>
+                                                        <!-- Project & Status Badge -->
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <span class="badge bg-light text-primary border border-primary-subtle fw-normal text-truncate" style="max-width: 60%;">
+                                                                <i class="bi bi-folder2 me-1"></i>@(task.ProjectObj?.ProjectName ?? "No Project")
+                                                            </span>
+                                                            <span class="badge @GetStatusBadge(task.StatusObj?.StatusTitle ?? "Pending")" style="font-size: 0.72rem;">
+                                                                @(task.StatusObj?.StatusTitle ?? "Pending")
+                                                            </span>
+                                                        </div>
+
+                                                        <!-- Task Description -->
+                                                        <p class="text-muted small mb-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.4em; font-size: 0.8rem; line-height: 1.3;">
+                                                            @(string.IsNullOrWhiteSpace(task.TaskDesc) ? "No description provided." : task.TaskDesc)
+                                                        </p>
+                                                    </div>
+
+                                                    <!-- Footer Info -->
+                                                    <div class="pt-2 border-top d-flex justify-content-between align-items-center text-muted" style="font-size: 0.75rem;">
+                                                        <div class="d-flex align-items-center text-truncate me-1" title="Assigned User">
+                                                            <i class="bi bi-person text-primary me-1"></i>
+                                                            <span class="text-truncate fw-medium">@(task.UserObj?.FullName ?? "UnAssigned")</span>
+                                                        </div>
+                                                        <div class="d-flex align-items-center text-nowrap" title="Due Date">
+                                                            <i class="bi bi-calendar3 text-danger me-1"></i>
+                                                            <span>@task.DueDate.ToString("dd MMM yyyy")</span>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
                                         </div>
                                     }
                                 }
                             </div>
                         </div>
-                        <!-- Todo Cards View ends -->
-                        
+                        <!-- Todo Cards Scrollable Container ends -->
+
                     </div>
 
-                    <!-- Right Sidebar starts -->
-                    <div class="modal modal-slide-in sidebar-todo-modal fade @(isModalOpen ? "show d-block" : "")" " id="new-task-modal">
+                    <!-- Right Sidebar Modal (Preserved) -->
+                    <div class="modal modal-slide-in sidebar-todo-modal fade @(isModalOpen ? "show d-block" : "")" id="new-task-modal">
                         <div class="modal-dialog sidebar-lg">
                             <div class="modal-content p-0">
                                 <EditForm Model="@setupTaskDto" OnValidSubmit="Save" class="todo-modal">
                                     <DataAnnotationsValidator />
-                
+
                                     <div class="modal-header align-items-center mb-1">
                                         <h5 class="modal-title">@(setupTaskDto.Id == 0 ? "Add Task" : "Edit Task")</h5>
                                         <div class="todo-item-action d-flex align-items-center justify-content-between ms-auto">
@@ -153,7 +201,7 @@
                                                 <InputDate Type="InputDateType.DateTimeLocal" id="task-due-date" class="form-control w-100" @bind-Value="setupTaskDto.DueDate" style="cursor: pointer;" />
                                                 <ValidationMessage For="@(() => setupTaskDto.DueDate)" class="text-danger small" />
                                             </div>
-                                         
+                         
                                             <div class="mb-1">
                                                 <KrSelect2 TItem="SetupTagDto"
                                                            TValue="int"
@@ -164,7 +212,7 @@
                                                            @bind-Value="setupTaskDto.TagId" />
                                                 <ValidationMessage For="@(() => setupTaskDto.TagId)" class="text-danger small mt-0" />
                                             </div>
-                                          
+                          
                                             <div class="mb-1">
                                                 <KrSelect2 TItem="SetupProjectDto"
                                                            TValue="int"
@@ -175,7 +223,7 @@
                                                            @bind-Value="setupTaskDto.ProjectId" />
                                                 <ValidationMessage For="@(() => setupTaskDto.ProjectId)" class="text-danger small" />
                                             </div>
-                                            
+                            
                                             <div class="mb-1">
                                                 <KrSelect2 TItem="SetupUserDto"
                                                            TValue="long"
@@ -184,8 +232,8 @@
                                                            ValueSelector="@(u => u.Id)"
                                                            TextSelector="@(u => u.UserName)"
                                                            @bind-Value="setupTaskDto.Id" />
-                                                
                                             </div>
+
                                             <div class="mb-1">
                                                 <label for="task-desc" class="form-label">Description</label>
                                                 <InputTextArea id="task-desc" class="form-control" @bind-Value="setupTaskDto.TaskDesc" rows="4"></InputTextArea>
@@ -196,30 +244,21 @@
                                         <div class="my-1 d-flex align-items-center flex-wrap gap-1">
                                             @if (setupTaskDto.Id == 0)
                                             {
-                                                <button type="submit" class="btn btn-primary">
-                                                    Save & New
-                                                </button>
+                                                <button type="submit" class="btn btn-primary">Save & New</button>
                                             }
                                             else
                                             {
-                                                <button type="submit" class="btn btn-primary" >
-                                                    Update
-                                                </button>
-                                                <button type="button" class="btn btn-outline-danger" >
-                                                    Delete
-                                                </button>
+                                                <button type="submit" class="btn btn-primary">Update</button>
+                                                <button type="button" class="btn btn-outline-danger">Delete</button>
                                             }
-
-                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" >
-                                                Close
-                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
                                         </div>
+
                                     </div>
                                 </EditForm>
                             </div>
                         </div>
                     </div>
-                    <!-- Right Sidebar ends -->
 
                 </div>
             </div>
@@ -244,6 +283,10 @@
 
     private int currentPage = 1;
     private int pageSize = 10;
+    private DateTime fromDate = DateTime.Now;
+    private DateTime toDate = DateTime.Now;
+
+
     private SetupTaskDto setupTaskDto = new();
     public bool isLoading { get; set; } = true;
     private string queryString = string.Empty;
@@ -307,5 +350,39 @@
         {
             toastRef.Show($"Error fetching users: {ex.Message}", "error");
         }
+    }
+
+    private string GetPriorityHeader(string priority)
+    {
+        return priority?.ToLower() switch
+        {
+            "high" => "bg-danger",
+            "medium" => "bg-warning",
+            "low" => "bg-success",
+            _ => "bg-primary"
+        };
+    }
+
+    private string GetStatusBadge(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "completed" => "bg-label-success",
+            "pending" => "bg-label-warning",
+            "in progress" => "bg-label-primary",
+            "cancelled" => "bg-label-danger",
+            _ => "bg-label-secondary"
+        };
+    }
+
+    private string GetPriorityBadgeBg(string priority)
+    {
+        return priority?.ToLower() switch
+        {
+            "high" => "bg-light-danger text-danger border border-danger-subtle",
+            "medium" => "bg-light-warning text-warning border border-warning-subtle",
+            "low" => "bg-light-success text-success border border-success-subtle",
+            _ => "bg-light-primary text-primary border border-primary-subtle"
+        };
     }
 }

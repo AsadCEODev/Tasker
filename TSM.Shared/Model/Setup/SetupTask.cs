@@ -29,7 +29,7 @@ namespace TMS.Shared.Model.Setup
 
         public int ProjectId { get; set; }
         [ForeignKey(nameof(ProjectId))]
-        public SetupProject? SetupProject { get; set; }
+        public SetupProject? ProjectObj { get; set; }
 
         public long? UserId { get; set; }
         [ForeignKey(nameof(UserId))]
@@ -64,7 +64,7 @@ namespace TMS.Shared.Model.Setup
         [Range(1, int.MaxValue, ErrorMessage = "Please select a Status.")]
         public int? StatusId { get; set; }
         [NotMapped]
-        public SetupStatus StatusObj { get; set; } = new();
+        public SetupStatus? StatusObj { get; set; } = new();
 
         [Required(ErrorMessage = "Due Date is required.")]
         public DateTime DueDate { get; set; } = DateTime.Now;
@@ -72,7 +72,7 @@ namespace TMS.Shared.Model.Setup
         [Range(1, int.MaxValue, ErrorMessage = "Please select a Project.")]
         public int ProjectId { get; set; }
         [NotMapped]
-        public SetupProject SetupProject { get; set; } = new();
+        public SetupProject? ProjectObj { get; set; } = new();
         public long? UserId { get; set; } = null;
         [NotMapped]
         public SetupUser? UserObj { get; set; } = new();

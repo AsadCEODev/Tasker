@@ -9,11 +9,11 @@ namespace TMS.Shared.Model.Setup
     {
         [Key] 
         public int Id { get; set; }
-        public string StatusTitle { get; set; } = string.Empty;
+        public string StatusTitle { get; set; } = "Pending";
     }
     public class SetupStatusDto
     {
         public int Id { get; set; }
-        public string StatusTitle { get; set; } = string.Empty;
+        public string StatusTitle { get; set; } = "Pending";
     }
 }

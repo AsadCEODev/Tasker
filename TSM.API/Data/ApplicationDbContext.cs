@@ -32,7 +32,7 @@ namespace TMS.API.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<SetupTask>()
-                .HasOne(t => t.SetupProject)
+                .HasOne(t => t.ProjectObj)
                 .WithMany()
                 .HasForeignKey(t => t.ProjectId)
                 .OnDelete(DeleteBehavior.Restrict);

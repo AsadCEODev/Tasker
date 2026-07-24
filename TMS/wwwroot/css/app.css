@@ -140,3 +140,26 @@ code {
     border: 1px solid #f5c6cb !important;
 }
 
+
+.kanban-card {
+    border-radius: 12px;
+    transition: .25s;
+    cursor: pointer;
+}
+
+    .kanban-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,.12) !important;
+    }
+
+    .kanban-card .badge {
+        border-radius: 20px;
+    }
+
+    .kanban-card h6 {
+        font-size: .95rem;
+    }
+
+    .kanban-card p {
+        font-size: .82rem;
+    }
