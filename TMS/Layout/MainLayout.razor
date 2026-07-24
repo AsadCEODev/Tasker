@@ -28,10 +28,11 @@
         {
             await JS.InvokeVoidAsync("initVuexy");
             await JS.InvokeVoidAsync("loadTheme");
-            await JS.InvokeVoidAsync("feather.replace");
+            await JS.InvokeVoidAsync("eval", "if (typeof feather !== 'undefined') { feather.replace(); }");
         }
     }
 
+    
     private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         // Page render hone ka wait

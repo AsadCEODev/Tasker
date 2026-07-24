@@ -30,6 +30,24 @@ namespace TMS.ClientServices
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<List<SetupProjectDto>> GetActiveList()
+        {
+            try
+            {
+                var response = await httpClient.GetAsync($"{baseUrl}/GetActiveList");
+                if (response.IsSuccessStatusCode)
+                {
+                    var lst = await response.Content.ReadFromJsonAsync<List<SetupProjectDto>>();
+                    return lst ?? new();
+                }
+                return new();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
         public async Task<SetupProjectDto> GetById(int id)
         {
             try
@@ -53,5 +71,6 @@ namespace TMS.ClientServices
     {
         Task<List<SetupProjectDto>> GetAll();
         Task<SetupProjectDto> GetById(int id);
+        Task<List<SetupProjectDto>> GetActiveList();
     }
 }

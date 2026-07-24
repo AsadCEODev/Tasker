@@ -37,7 +37,7 @@ namespace TMS.API.Services.SetupServices
 
                 var totalRecords = await query.CountAsync();
 
-                var items = await query
+                var items = await query.OrderByDescending(x => x.Id)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ProjectToType<SetupTaskDto>()
@@ -82,7 +82,10 @@ namespace TMS.API.Services.SetupServices
                 {
                     return -1;
                 }
-
+                model.ProjectObj = null;
+                model.StatusObj = null;
+                model.TagObj = null;
+                model.UserObj = null;
                 model.CreatedOn = DateTime.Now;
                 model.CreatedBy = "Admin";
                 dbContext.SetupTasks.Add(model);

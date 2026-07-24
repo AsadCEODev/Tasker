@@ -45,11 +45,24 @@ namespace TSM.API.Services.SetupServices
                 throw new Exception(ex.Message);
             }
         }
+        public async Task<List<SetupProject>> GetActiveList()
+        {
+            try
+            {
+                var lst = await dbContext.SetupProjects.Where(x => x.IsActive == true).ToListAsync();
+                return lst;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 
     public interface ISetupProjectService
     {
         Task<List<SetupProject>> GetAll();
         Task<SetupProject> GetById(int id);
+        Task<List<SetupProject>> GetActiveList();
     }
 }

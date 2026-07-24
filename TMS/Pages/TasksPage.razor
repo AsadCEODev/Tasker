@@ -14,11 +14,11 @@
 
 <!-- BEGIN: Content-->
 <div class="todo-application">
-   
+
     <div class="content-overlay"></div>
     <div class="header-navbar-shadow"></div>
     <div class="content-area-wrapper container-xxl p-0">
-        
+
         <div class="sidebar-left">
             <div class="sidebar">
                 <div class="sidebar-content todo-sidebar">
@@ -50,7 +50,7 @@
                             </div>
                             <div class="list-group list-group-labels">
                                 <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
-                                    <span class="bullet bullet-sm bullet-success me-1"></span>Low
+                                    <span class="bullet bullet-sm bullet-secondary me-1"></span>Low
                                 </a>
                                 <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
                                     <span class="bullet bullet-sm bullet-warning me-1"></span>Medium
@@ -59,7 +59,7 @@
                                     <span class="bullet bullet-sm bullet-danger me-1"></span>High
                                 </a>
                                 <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
-                                    <span class="bullet bullet-sm bullet-info me-1"></span>Update
+                                    <span class="bullet bullet-sm bullet-success me-1"></span>Completed
                                 </a>
                             </div>
                         </div>
@@ -71,20 +71,20 @@
         <div class="content-right">
             <div class="content-wrapper container-xxl p-0">
                 <div class="content-header row">
-                    
                 </div>
-                <div class="content-body h-100 overflow-hidden">
+                <div class="content-body d-flex flex-column" style="height:calc(100vh - 130px);">
+
                     <div class="body-content-overlay"></div>
-    
+
                     <!-- Main Scrollable App Container -->
                     <div class="todo-app-list d-flex flex-column h-100">
-        
+
                         <!-- Todo Search Header (Fixed) -->
                         <div class="app-fixed-search d-flex align-items-center p-2 border-bottom bg-white flex-shrink-0 gap-2">
                             <div class="sidebar-toggle d-block d-lg-none">
                                 <i data-feather="menu" class="font-medium-5"></i>
                             </div>
-            
+
                             <div class="d-flex align-items-center justify-content-between w-100 gap-2 flex-wrap flex-md-nowrap">
                                 <!-- Search Input -->
                                 <div class="input-group input-group-merge">
@@ -107,28 +107,30 @@
                         </div>
                         <!-- Todo search ends -->
                         <!-- Todo Cards Scrollable Container starts -->
-                        <div class="todo-cards-scroll-container p-2 flex-grow-1 overflow-y-auto">
-                            <div class="row row-cols-1 row-cols-md-3 row-cols-xl-4 g-2">
+                        <div class="todo-cards-scroll-container flex-grow-1 overflow-auto p-2">
+                            <div class="row g-2">
                                 @if (taskList != null && taskList.Data.Any())
                                 {
                                     @foreach (var task in taskList.Data)
                                     {
-                                        <div class="col">
-                                            <div class="card shadow-sm border-0 h-100 rounded-3 overflow-hidden">
+                                        <div class="col-md-4 ">
+                                            <div class="card shadow border-1 h-100 rounded-3">
 
                                                 <!-- Colored Header Indicator -->
-                                                <div class="card-header p-2 text-white d-flex justify-content-between align-items-center @GetPriorityHeader(task.TagObj?.TagTitle)">
-                                                    <h6 class="fw-bold text-white text-truncate mb-0 fs-6" style="max-width: 70%;" title="@task.TaskTitle">
-                                                        @task.TaskTitle
-                                                    </h6>
-                                                    <span class="badge bg-white text-dark fw-semibold px-2 py-1 text-uppercase" style="font-size: 0.68rem;">
-                                                        @(task.TagObj?.TagTitle ?? "N/A")
-                                                    </span>
+
+                                                <div class="card-header @GetPriorityHeader(@task.TagObj.TagTitle) border-1 pb-1 pb-0">
+                                                    <div class="d-flex justify-content-between align-items-center w-100">
+                                                        <span class="text-white fw-bold" style="font-size: 1rem;">
+                                                            Task Title: <span class="text-white">@task.TaskDesc</span>
+                                                        </span>
+                                                        <span class="badge px-2.5 py-1.5  ms-auto">@task.TagObj.TagTitle</span>
+                                                    </div>
                                                 </div>
 
+                                                
                                                 <!-- Card Body -->
-                                                <div class="card-body p-2 d-flex flex-column justify-content-between">
-                                    
+                                                <div class="card-body p-2 d-flex ">
+
                                                     <div>
                                                         <!-- Project & Status Badge -->
                                                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -201,7 +203,7 @@
                                                 <InputDate Type="InputDateType.DateTimeLocal" id="task-due-date" class="form-control w-100" @bind-Value="setupTaskDto.DueDate" style="cursor: pointer;" />
                                                 <ValidationMessage For="@(() => setupTaskDto.DueDate)" class="text-danger small" />
                                             </div>
-                         
+
                                             <div class="mb-1">
                                                 <KrSelect2 TItem="SetupTagDto"
                                                            TValue="int"
@@ -212,7 +214,7 @@
                                                            @bind-Value="setupTaskDto.TagId" />
                                                 <ValidationMessage For="@(() => setupTaskDto.TagId)" class="text-danger small mt-0" />
                                             </div>
-                          
+
                                             <div class="mb-1">
                                                 <KrSelect2 TItem="SetupProjectDto"
                                                            TValue="int"
@@ -223,7 +225,7 @@
                                                            @bind-Value="setupTaskDto.ProjectId" />
                                                 <ValidationMessage For="@(() => setupTaskDto.ProjectId)" class="text-danger small" />
                                             </div>
-                            
+
                                             <div class="mb-1">
                                                 <KrSelect2 TItem="SetupUserDto"
                                                            TValue="long"
@@ -307,7 +309,7 @@
 
             taskList = await thisService.GetAll(currentPage, pageSize);
             tagList = await tagService.GetAll();
-            projectsList = await projectService.GetAll();
+            projectsList = await projectService.GetActiveList();
 
             isLoading = false;
         }
@@ -337,12 +339,13 @@
             }
             else if (result == -1)
             {
-                
+
                 toastRef.Show("Task already exist.", "error");
+                taskList = await thisService.GetAll(currentPage, pageSize);
             }
             else
             {
-                
+
                 toastRef.Show("Failed to add Task.", "error");
             }
         }
@@ -358,7 +361,7 @@
         {
             "high" => "bg-danger",
             "medium" => "bg-warning",
-            "low" => "bg-success",
+            "low" => "bg-secondary",
             _ => "bg-primary"
         };
     }

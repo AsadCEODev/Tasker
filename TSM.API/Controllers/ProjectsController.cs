@@ -62,5 +62,25 @@ namespace TSM.API.Controllers
                 throw new Exception(ex.Message);
             }
         }
+
+        [HttpGet("GetActiveList")]
+        public async Task<IActionResult> GetActiveList()
+        {
+            try
+            {
+                var lst = await thisService.GetActiveList();
+                if (lst == null)
+                {
+                    return NotFound(lst);
+                }
+                var converted = lst.Adapt<List<SetupProjectDto>>();
+                return Ok(converted);
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }
