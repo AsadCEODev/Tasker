@@ -1,0 +1,16 @@
+﻿@inject IJSRuntime JS
+@inherits LayoutComponentBase
+
+    @Body
+
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            
+            await JS.InvokeVoidAsync("feather.replace");
+        }
+    }
+}

@@ -28,7 +28,7 @@
         {
             await JS.InvokeVoidAsync("initVuexy");
             await JS.InvokeVoidAsync("loadTheme");
-            await JS.InvokeVoidAsync("eval", "if (typeof feather !== 'undefined') { feather.replace(); }");
+            await JS.InvokeVoidAsync("feather.replace");
         }
     }
 

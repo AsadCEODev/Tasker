@@ -1,0 +1,68 @@
+﻿@page "/LoginPage"
+
+@layout LoginLayout
+
+
+<div class="app-content content p-0 overflow-hidden">
+    <div class="content-wrapper p-0">
+        <div class="content-body">
+            <div class="auth-wrapper ">
+                <div class="auth-inner row m-0">
+                    <a class="position-absolute top-0 start-0 d-none d-lg-block">
+                        <img src="logo/pnglogo.png"
+                             alt="GWX Solutions"
+                             style="height:150px;" />
+                    </a>
+                    <!-- Left Text-->
+                    <div class="d-none d-lg-flex col-lg-8 align-items-center p-5">
+                        <div class="w-100 d-lg-flex align-items-center justify-content-center px-5"><img class="img-fluid" src="app-assets/images/pages/login-v2.svg" alt="Login V2" /></div>
+                    </div>
+                    <!-- /Left Text-->
+                    <!-- Login-->
+                    <div class="d-flex col-lg-4 align-items-center auth-bg px-2 ">
+                        <div class="col-12 col-sm-8 col-md-6 col-lg-12 px-xl-2 mx-auto">
+                            <div class="text-center mb-3 d-block d-lg-none">
+                                <img src="logo/pnglogo.png"
+                                     alt="GWX Solutions"
+                                     style="height:150px;" />
+                            </div>
+                            <h2 class="card-title fw-bold mb-1 text-center">Welcome to GWX Tasker 👋</h2>
+                            <p class="card-text mb-2">Please sign-in to your account and start the adventure</p>
+                            <form class="auth-login-form mt-2" action="index.html" method="POST">
+                                <div class="mb-1">
+                                    <label class="form-label">UserName<span class="text-danger">*</span></label>
+                                    <input class="form-control" type="text" name="login-email" placeholder="UserName" aria-describedby="login-email" autofocus="" tabindex="1" />
+                                </div>
+                                <div class="mb-1">
+                                    <div class="d-flex justify-content-between">
+                                        <label class="form-label" for="login-password">Password<span class="text-danger">*</span></label><a href="auth-forgot-password-cover.html"><small>Forgot Password?</small></a>
+                                    </div>
+                                    <div class="input-group input-group-merge form-password-toggle">
+                                        <input class="form-control form-control-merge" id="login-password" type="password" name="login-password" placeholder="············" aria-describedby="login-password" tabindex="2" /><span class="input-group-text cursor-pointer"><i data-feather="eye"></i></span>
+                                    </div>
+                                </div>
+                                <div class="mb-1">
+                                    <div class="form-check">
+                                        <input class="form-check-input" id="remember-me" type="checkbox" tabindex="3" />
+                                        <label class="form-check-label" for="remember-me"> Remember Me</label>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary w-100" tabindex="4">Sign in</button>
+                            </form>
+                            <p class="text-center mt-2"><span>New on our platform?</span><a href="auth-register-cover.html"><span>&nbsp;Create an account</span></a></p>
+                            <div class="divider my-2">
+                                <div class="divider-text">or</div>
+                            </div>
+                            <div class="auth-footer-btn d-flex justify-content-center"><a class="btn btn-facebook" href="#"><i data-feather="facebook"></i></a><a class="btn btn-twitter white" href="#"><i data-feather="twitter"></i></a><a class="btn btn-google" href="#"><i data-feather="mail"></i></a><a class="btn btn-github" href="#"><i data-feather="github"></i></a></div>
+                        </div>
+                    </div>
+                    <!-- /Login-->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+}

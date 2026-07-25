@@ -50,3 +50,45 @@ window.hideBootstrapModal = (modalId) => {
     }
 };
 
+
+window.initSelect2 = function (element, dotNetHelper, isMultiple) {
+    if (!element) return;
+
+    var $element = $(element);
+
+    if ($element.hasClass("select2-hidden-accessible")) {
+        $element.select2('destroy');
+    }
+
+    if (isMultiple) {
+        $element.attr('multiple', 'multiple');
+    } else {
+        $element.removeAttr('multiple');
+    }
+
+    setTimeout(function () {
+        $element.select2({
+            theme: "bootstrap-5",
+            multiple: isMultiple,
+            width: '100%',
+            dropdownParent: $element.closest('.offcanvas, .modal, body'),
+            minimumResultsForSearch: 0,
+            closeOnSelect: false // Multi-select mein option select karne par dropdown band na ho taake mazeed select kar sakein
+        });
+    }, 50);
+
+    $element.off('change.blazor').on('change.blazor', function (e) {
+        var val = $element.val();
+        dotNetHelper.invokeMethodAsync('OnSelectChanged', val);
+    });
+};
+
+window.updateSelect2Value = function (element, value) {
+    if (!element) return;
+    var $element = $(element);
+    var currentValue = $element.val();
+
+    if (JSON.stringify(currentValue) !== JSON.stringify(value)) {
+        $element.val(value).trigger('change.select2');
+    }
+};
