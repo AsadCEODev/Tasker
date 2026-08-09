@@ -92,3 +92,21 @@ window.updateSelect2Value = function (element, value) {
         $element.val(value).trigger('change.select2');
     }
 };
+
+
+window.initFeatherObserver = function () {
+
+    if (window.featherObserver)
+        return;
+
+    window.featherObserver = new MutationObserver(function () {
+        if (window.feather) {
+            feather.replace();
+        }
+    });
+
+    window.featherObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}

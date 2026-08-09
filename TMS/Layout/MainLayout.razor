@@ -26,17 +26,19 @@
     {
         if (firstRender)
         {
+
+            
             await JS.InvokeVoidAsync("initVuexy");
             await JS.InvokeVoidAsync("loadTheme");
-            await JS.InvokeVoidAsync("feather.replace");
+            await JS.InvokeVoidAsync("initFeatherObserver");
         }
     }
 
     
     private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        // Page render hone ka wait
-        await Task.Delay(50);
+        StateHasChanged();
+        
 
         await JS.InvokeVoidAsync("initVuexy");
 
@@ -45,7 +47,7 @@
         await JS.InvokeVoidAsync("menuFunctions.updateActiveMenu", "/" + path);
 
         await JS.InvokeVoidAsync("loadTheme");
-        await JS.InvokeVoidAsync("feather.replace");
+        await JS.InvokeVoidAsync("initFeatherObserver");
     }
 
     public void Dispose()

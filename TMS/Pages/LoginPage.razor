@@ -1,9 +1,19 @@
-﻿@page "/LoginPage"
+﻿@page "/Login"
+@using TMS.Shared.Model.Auth
+
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
+
+@using AuthStateProvider
+
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
 
 @layout LoginLayout
 
 
-<div class="app-content content p-0 overflow-hidden">
+<div class="app-content  p-0 overflow-hidden">
     <div class="content-wrapper p-0">
         <div class="content-body">
             <div class="auth-wrapper ">
@@ -28,27 +38,61 @@
                             </div>
                             <h2 class="card-title fw-bold mb-1 text-center">Welcome to GWX Tasker 👋</h2>
                             <p class="card-text mb-2">Please sign-in to your account and start the adventure</p>
-                            <form class="auth-login-form mt-2" action="index.html" method="POST">
+                            <EditForm Model="loginModel" OnValidSubmit="HandleLogin" class="auth-login-form mt-2">
+                                <DataAnnotationsValidator />
+
                                 <div class="mb-1">
                                     <label class="form-label">UserName<span class="text-danger">*</span></label>
-                                    <input class="form-control" type="text" name="login-email" placeholder="UserName" aria-describedby="login-email" autofocus="" tabindex="1" />
+                                    <InputText class="form-control" @bind-Value="loginModel.UserName" placeholder="UserName" aria-describedby="login-email" autofocus="" tabindex="1" />
+                                    <ValidationMessage For="@(() => loginModel.UserName)" class="text-danger small" />
                                 </div>
+
                                 <div class="mb-1">
                                     <div class="d-flex justify-content-between">
-                                        <label class="form-label" for="login-password">Password<span class="text-danger">*</span></label><a href="auth-forgot-password-cover.html"><small>Forgot Password?</small></a>
+                                        <label class="form-label" for="login-password">Password<span class="text-danger">*</span></label>
+                                        <a href="auth-forgot-password-cover.html"><small>Forgot Password?</small></a>
                                     </div>
                                     <div class="input-group input-group-merge form-password-toggle">
-                                        <input class="form-control form-control-merge" id="login-password" type="password" name="login-password" placeholder="············" aria-describedby="login-password" tabindex="2" /><span class="input-group-text cursor-pointer"><i data-feather="eye"></i></span>
+                                        <InputText class="form-control form-control-merge" id="login-password" type="password" @bind-Value="loginModel.Password" placeholder="············" aria-describedby="login-password" tabindex="2" />
+                                        <span class="input-group-text cursor-pointer"><i data-feather="eye"></i></span>
                                     </div>
+                                    <ValidationMessage For="@(() => loginModel.Password)" class="text-danger small" />
                                 </div>
+
                                 <div class="mb-1">
                                     <div class="form-check">
                                         <input class="form-check-input" id="remember-me" type="checkbox" tabindex="3" />
                                         <label class="form-check-label" for="remember-me"> Remember Me</label>
                                     </div>
                                 </div>
-                                <button class="btn btn-primary w-100" tabindex="4">Sign in</button>
-                            </form>
+
+                                <button type="submit"
+                                        class="btn btn-primary w-100"
+                                        tabindex="4"
+                                        disabled="@isLoggingIn">
+
+                                    @if (isLoggingIn)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-50"
+                                              role="status"
+                                              aria-hidden="true"></span>
+
+                                        <span>Logging in...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Login</span>
+                                    }
+
+                                </button>
+
+                                @if (!string.IsNullOrEmpty(errorMessage))
+                                {
+                                    <div class="alert alert-danger mt-2 p-2" role="alert">
+                                        <small>@errorMessage</small>
+                                    </div>
+                                }
+                            </EditForm>
                             <p class="text-center mt-2"><span>New on our platform?</span><a href="auth-register-cover.html"><span>&nbsp;Create an account</span></a></p>
                             <div class="divider my-2">
                                 <div class="divider-text">or</div>
@@ -64,5 +108,55 @@
 </div>
 
 @code {
+    private LoginDto loginModel = new();
+    private string? errorMessage;
 
+    private bool isLoggingIn = false;
+
+    private async Task HandleLogin()
+    {
+        if (isLoggingIn)
+            return;
+
+        isLoggingIn = true;
+        errorMessage = null;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync(
+                "api/auth/login",
+                loginModel);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                errorMessage = "Invalid username or password.";
+                return;
+            }
+
+            var result =
+                await response.Content.ReadFromJsonAsync<TokenResponseDto>();
+
+            if (result == null || string.IsNullOrWhiteSpace(result.Token))
+            {
+                errorMessage = "Login failed. Token not received.";
+                return;
+            }
+
+            await JSRuntime.InvokeVoidAsync("sessionStorage.setItem","authToken", result.Token);
+
+            var authProvider =(CustomAuthStateProvider)AuthStateProvider;
+
+            authProvider.NotifyUserLogin(result.Token);
+
+            Navigation.NavigateTo("/");
+        }
+        catch
+        {
+            errorMessage = "Something went wrong. Please try again.";
+        }
+        finally
+        {
+            isLoggingIn = false;
+        }
+    }
 }

@@ -41,6 +41,8 @@ namespace TMS.Shared.Model.Setup
         public string? UpdatedBy { get; set; } = string.Empty;
 
         public DateTime? UpdatedOn { get; set; } = DateTime.Now;
+        [NotMapped]
+        public string? Token { get; set; } = string.Empty;
     }
 
     public class SetupUserDto
@@ -84,5 +86,25 @@ namespace TMS.Shared.Model.Setup
         public long TotalUserCount { get; set; } = 0;
         public long ActiveUserCount { get; set; } = 0;
         public long InactiveUserCount { get; set; } = 0;
+    }
+
+
+    public class LoginRequest
+    {
+        [Required(ErrorMessage ="Please Enter Valid User Name.")]
+        public string UserName { get; set; }
+        [Required(ErrorMessage = "Please Enter Valid Password.")]
+        public string Password { get; set; }
+    }
+
+    public class LoginResponseDto
+    {
+        public long Id { get; set; }
+
+        public string UserName { get; set; } = string.Empty;
+
+        public string FullName { get; set; } = string.Empty;
+
+        public string Token { get; set; } = string.Empty;
     }
 }

@@ -10,7 +10,7 @@
 @inject IUserClientService userService;
 @inject IJSRuntime JS
 
-<div class="content-wrapper container-xxl p-0">
+<div class="content-wrapper container-xxl-fluid p-0">
     <div class="content-header row">
     </div>
     <div class="content-body">
@@ -335,6 +335,7 @@
             pagedResult = await userService.GetAll(currentPage, pageSize, queryString);
 
             userSummary = await userService.GetUsersSummary();
+            StateHasChanged();
         }
         catch (Exception ex)
         {

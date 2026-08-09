@@ -1,4 +1,4 @@
-﻿@page "/DepartmentsPage"
+﻿@page "/AssignProject"
 @using TMS.Shared.Model.Setup
 @using TMS.ClientServices
 @using TMS.Components
@@ -7,78 +7,65 @@
 
 
 
+@inject IAssignProjectClientService thisService;
 @inject IUserClientService userService;
+@inject ISetupProjectClientService projectService;
 @inject IJSRuntime JS
 
-<div class="content-wrapper container-xxl p-0">
+<div class="content-wrapper container-xxl-fluid p-0">
     <div class="content-header row">
     </div>
     <div class="content-body">
         <!-- users list start -->
         <section class="app-user-list">
             <div class="row">
-                <div class="col-lg-3 col-sm-6">
+                <div class="col-lg-4 col-sm-6">
                     <div class="card">
                         <div class="card-body d-flex align-items-center justify-content-between">
                             <div>
-                                <h3 class="fw-bolder mb-75">@userSummary.TotalUserCount</h3>
-                                <span>Total Users</span>
+                                <h3 class="fw-bolder mb-75">@TotalProjects</h3>
+                                <span>Total Projects</span>
                             </div>
                             <div class="avatar bg-light-primary p-50">
                                 <span class="avatar-content">
-                                    <i data-feather="user" class="font-medium-4"></i>
+                                    <i data-feather="layers" class="font-medium-4"></i>
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-sm-6">
+                <div class="col-lg-4 col-sm-6">
                     <div class="card">
                         <div class="card-body d-flex align-items-center justify-content-between">
                             <div>
-                                <h3 class="fw-bolder mb-75">@userSummary.ActiveUserCount</h3>
-                                <span>Active Users</span>
+                                <h3 class="fw-bolder mb-75">@TotalActiveProjects</h3>
+                                <span>Active Projects</span>
                             </div>
                             <div class="avatar bg-light-success p-50">
                                 <span class="avatar-content">
-                                    <i data-feather="user-check" class="font-medium-4"></i>
+                                    <i data-feather="activity" class="font-medium-4"></i>
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-sm-6">
+                <div class="col-lg-4 col-sm-6">
                     <div class="card">
                         <div class="card-body d-flex align-items-center justify-content-between">
                             <div>
-                                <h3 class="fw-bolder mb-75">@userSummary.InactiveUserCount</h3>
-                                <span>InActive Users</span>
+                                <h3 class="fw-bolder mb-75">@TotalInActiveProjects</h3>
+                                <span>InActive Projects</span>
                             </div>
                             <div class="avatar bg-light-danger p-50">
                                 <span class="avatar-content">
-                                    <i data-feather="user-x" class="font-medium-4"></i>
+                                    <i data-feather="pause-circle" class="font-medium-4"></i>
                                 </span>
                             </div>
                             
                         </div>
                     </div>
                 </div>
-                
-                <div class="col-lg-3 col-sm-6">
-                    <div class="card">
-                        <div class="card-body d-flex align-items-center justify-content-between">
-                            <div>
-                                <h3 class="fw-bolder mb-75">0</h3>
-                                <span>Pending Users</span>
-                            </div>
-                            <div class="avatar bg-light-warning p-50">
-                                <span class="avatar-content">
-                                    <i data-feather="user-plus" class="font-medium-4"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+               
             </div>
             <!-- list and filter start -->
             <div class="card">
@@ -122,7 +109,7 @@
                                 </div>
 
                                 <button class="btn btn-primary" @onclick="OpenModel">
-                                    Add New User
+                                    Assign Project
                                 </button>
 
                             </div>
@@ -154,36 +141,28 @@
                                     <tr>
                                         <th>User Name</th>
                                         <th>Full Name</th>
-                                        <th>Father Name</th>
-                                        <th>Email</th>
-                                        <th>Phone No</th>
-                                        <th>STATUS</th>
+                                        <th>CNIC</th>
+                                        <th>Assigned Projects</th>
                                         <th>ACTIONS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @if (pagedResult.Data == null || !pagedResult.Data.Any())
+                                    @if (userProjectsList.Data == null || !userProjectsList.Data.Any())
                                     {
                                         <tr><td colspan="6" class="text-center py-5">No users found.</td></tr>
                                     }
                                     else
                                     {
-                                        @foreach (var user in pagedResult.Data)
+                                        @foreach (var user in userProjectsList.Data)
                                         {
                                             <tr>
-                                                <td><span>@user.UserName</span></td>
-                                                <td><span>@user.FullName</span></td>
-                                                <td><span>@user.FatherName</span></td>
-                                                <td><span>@user.Email</span></td>
-                                                <td><span>@user.PhoneNo</span></td>
+                                                <td><span>@user.UserObj.UserName</span></td>
+                                                <td><span>@user.UserObj.FullName</span></td>
+                                                <td><span>@user.UserObj.CNIC</span></td>
+                                                <td><span>@user.ProjectObj.ProjectName</span></td>
                                                 <td>
-                                                    <span class="badge @(user.IsActive == true ? "bg-success" : "bg-danger")">
-                                                        @(user.IsActive == true ? "Active" : "InActive")
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-icon btn-outline-primary" @onclick="() => EditUser(user.Id)">
-                                                        <i data-feather="edit" class="font-medium-3"></i>
+                                                    <button class="btn btn-sm btn-icon btn-outline-danger" @onclick="() => RemoveAssignedProjct(user.Id)">
+                                                        <i data-feather="trash" class="font-medium-3"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -195,11 +174,11 @@
                     }
                     <!-- Footer -->
                     <div class="d-flex justify-content-between align-items-center mt-3">
-                        @if (pagedResult != null && pagedResult.TotalCount > 0)
+                        @if (userProjectsList != null && userProjectsList.TotalCount > 0)
                         {
                             
                             <span class="text-muted">
-                                Showing page @pagedResult.PageIndex of @pagedResult.TotalPages
+                                Showing page @userProjectsList.PageIndex of @userProjectsList.TotalPages
                             </span>
                         }
                         else
@@ -215,9 +194,9 @@
                                 </li>
 
                                 <!-- Page Numbers -->
-                                @if (pagedResult != null && pagedResult.TotalPages > 0)
+                                @if (userProjectsList != null && userProjectsList.TotalPages > 0)
                                 {
-                                    @for (int i = 1; i <= pagedResult.TotalPages; i++)
+                                    @for (int i = 1; i <= userProjectsList.TotalPages; i++)
                                     {
                                         int pageNum = i;
                                         <li class="page-item @(currentPage == pageNum ? "active" : "")">
@@ -227,7 +206,7 @@
                                 }
 
                                 <!-- Next Button -->
-                                <li class="page-item @(pagedResult == null || currentPage >= pagedResult.TotalPages ? "disabled" : "")">
+                                <li class="page-item @(userProjectsList == null || currentPage >= userProjectsList.TotalPages ? "disabled" : "")">
                                     <a class="page-link" @onclick="() => OnPageChanged(currentPage + 1)">›</a>
                                 </li>
                             </ul>
@@ -243,62 +222,35 @@
 </div>
 
 
-<ModalPopup Title="User Details" @bind-IsVisible="isModalOpen">
-    <EditForm Model="@userDto" OnValidSubmit="Save">
+<ModalPopup Title="Assign Project" @bind-IsVisible="isModalOpen">
+    <EditForm Model="@assignProjectsDto" OnValidSubmit="Save">
         <DataAnnotationsValidator />
 
         <div class="row">
-            <div class="col-md-6 mb-1">
-                <label class="form-label">User Name<span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="userDto.UserName" disabled="@isDisabled"  />
-                <ValidationMessage For="@(() => userDto.UserName)" />
+            <div class="mb-1">
+                <KrSelect2 TItem="SetupUserDto"
+                           TValue="long"
+                           Label="User"
+                           Items="@usersList"
+                           ValueSelector="@(u => u.Id)"
+                           TextSelector="@(u => u.UserName)"
+                           @bind-Value="assignProjectsDto.UserId"/>
             </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">Full Name<span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="userDto.FullName"  />
-                <ValidationMessage For="@(() => userDto.FullName)" />
-            </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">Full Name<span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="userDto.FatherName" />
-                <ValidationMessage For="@(() => userDto.FatherName)" />
-            </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">Phone<span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="userDto.PhoneNo" />
-                <ValidationMessage For="@(() => userDto.PhoneNo)" />
-            </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">CNIC<span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="userDto.CNIC"  />
-                <ValidationMessage For="@(() => userDto.CNIC)" />
-            </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">Email<span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="userDto.Email"  />
-                <ValidationMessage For="@(() => userDto.Email)" />
-            </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">Password<span class="text-danger">*</span></label>
-                <InputText class="form-control" type="password" @bind-Value="userDto.HashPassword" disabled="@isDisabled" />
-                <ValidationMessage For="@(() => userDto.HashPassword)" />
-            </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">Confirm Password<span class="text-danger">*</span></label>
-                <InputText class="form-control" type="password" @bind-Value="userDto.ConfirmPassword" disabled="@isDisabled" />
-                <ValidationMessage For="@(() => userDto.ConfirmPassword)" />
-            </div>
-            <div class="col-md-6 mb-3">
-                <div class="form-check form-switch">
-                    <InputCheckbox class="form-check-input" id="isActiveCheck" @bind-Value="userDto.IsActive" />
-                    <label class="form-check-label" for="isActiveCheck">Is Active</label>
-                </div>
+            <div class="mb-1">
+                <KrSelect2 TItem="SetupProjectDto"
+                           TValue="int"
+                           Label="Project"
+                           IsMultiple = "true"
+                           Items="@projectsList"
+                           ValueSelector="@(u => u.Id)"
+                           TextSelector="@(u => u.ProjectName)"
+                           @bind-Values="selectedIds" />
             </div>
         </div>
-
+        
         <div class="modal-footer">
             <button type="submit" class="btn btn-primary">
-                @(userDto.Id > 0 ? "Update" : "Save")
+                @(UserProjectDto.Id > 0 ? "Update" : "Save")
             </button>
             <button type="button" class="btn btn-outline-secondary" @onclick="() => isModalOpen = false">Cancel</button>
         </div>
@@ -308,12 +260,19 @@
 <ToastMessage @ref="toastRef" />
 
 @code {
-    private PaginationResponse<SetupUserDto> pagedResult = new();
+    private PaginationResponse<UserProjectDto> userProjectsList = new();
     private int currentPage = 1;
     private int pageSize = 10;
 
-    public SetupUserDto userDto { get; set; } = new();
-    public UserSummary? userSummary { get; set; } = new();
+    private int TotalProjects =0;
+    private int TotalActiveProjects =0;
+    private int TotalInActiveProjects =0;
+    private List<SetupUserDto> usersList = new();
+    private List<SetupProjectDto> projectsList = new();
+    private List<int> selectedIds = new();
+    private UserProjectDto UserProjectDto = new();
+    private UserAssignProjectsDto assignProjectsDto = new();
+
     public bool isLoading { get; set; } = true;
     private ToastMessage toastRef { get; set; } = new();
     private bool isModalOpen = false;
@@ -324,6 +283,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadData();
+        await LoadLists();
     }
 
     private async Task LoadData()
@@ -332,17 +292,31 @@
         {
             isLoading = true;
 
-            pagedResult = await userService.GetAll(currentPage, pageSize, queryString);
-
-            userSummary = await userService.GetUsersSummary();
+            userProjectsList = await thisService.GetAll(currentPage, pageSize, queryString);
+            TotalProjects = userProjectsList.TotalCount;
+            TotalActiveProjects = userProjectsList.Data.Count(p => p.IsActive);
+            TotalInActiveProjects = userProjectsList.Data.Count(p => p.IsActive != true);
         }
         catch (Exception ex)
         {
-            toastRef.Show($"Error fetching users: {ex.Message}", "error");
+            toastRef.Show($"Error: {ex.Message}", "error");
         }
         finally
         {
             isLoading = false;
+        }
+    }
+
+    public async Task LoadLists()
+    {
+        try
+        {
+            usersList = await userService.GetUsersList();
+            projectsList = await projectService.GetActiveList();
+        }
+        catch (Exception ex)
+        {
+            toastRef.Show($"Error: {ex.Message}", "error");
         }
     }
 
@@ -356,8 +330,8 @@
     {
         try
         {
-            userDto = new();
-            isDisabled = false;
+            UserProjectDto = new();
+            assignProjectsDto = new();
             isModalOpen = true;
         }
         catch (Exception ex)
@@ -366,65 +340,42 @@
         }
     }
 
-
-    private async Task EditUser(long id)
+    private async Task RemoveAssignedProjct(long id)
     {
         try
         {
-            var found = await userService.GetById(id);
-            if (found == null)
+            var result = await thisService.Detele(id);
+            if (result)
             {
-                toastRef.Show("User not Found.", "error");
-                isModalOpen = false;
+                toastRef.Show("Project UnAssigned successfully!", "success");
+                await LoadData();
+                StateHasChanged();
             }
-            isDisabled = true;
-            userDto.Id = found.Id;
-            userDto.UserName = found.UserName;
-            userDto.FullName = found.FullName;
-            userDto.CNIC = found.CNIC;
-            userDto.Email = found.Email;
-            userDto.PhoneNo = found.PhoneNo;
-            userDto.HashPassword = found.HashPassword;
-            userDto.ConfirmPassword = found.HashPassword;
-            userDto.IsActive = found.IsActive;
-
-            isModalOpen = true;
-
+            else
+            {
+                toastRef.Show("Faild to Remove Assigned Project.", "error");
+            }
         }
         catch (Exception ex)
         {
-            throw new Exception(ex.Message);
+            toastRef.Show($"Error: {ex.Message}", "error");
         }
-
-
     }
 
     private async Task Save()
     {
         try
         {
-            int result;
+            assignProjectsDto.ProjectIds = selectedIds;
+            var  result = await thisService.Save(assignProjectsDto);
 
-            if(userDto.Id > 0)
+            if (result)
             {
-                result = await userService.Update(userDto);
-            }
-            else
-            {
-                result = await userService.Save(userDto);
-
-            }
-            if (result == 1)
-            {
-                toastRef.Show("User saved successfully!", "success");
+                toastRef.Show("Project Assigned successfully!", "success");
 
                 await LoadData();
                 isModalOpen = false;
-                userDto = new();
-            }
-            else if(result == -1)
-            {
-                toastRef.Show("User Name already Exist.", "error");
+                UserProjectDto = new();
             }
             else
             {
@@ -457,7 +408,7 @@
         {
             await InvokeAsync(async () =>
             {
-                pagedResult = await userService.GetAll(currentPage, pageSize, queryString);
+                userProjectsList = await thisService.GetAll(currentPage, pageSize, queryString);
                 StateHasChanged();
             });
         }

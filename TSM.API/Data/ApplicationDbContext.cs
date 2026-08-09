@@ -42,6 +42,9 @@ namespace TMS.API.Data
         public DbSet<SetupTag> SetupTags { get; set; }
         public DbSet<SetupStatus> SetupStatuses { get; set; }
         public DbSet<SetupProject> SetupProjects { get; set; }
+        public DbSet<SetupDepartment> SetupDepartments { get; set; }
+        public DbSet<SetupDesignation> SetupDesignations { get; set; }
+        public DbSet<UserProject> UserProjects { get; set; }
 
     }
 

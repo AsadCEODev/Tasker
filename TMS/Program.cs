@@ -1,26 +1,39 @@
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using TMS;
+using TMS.AuthStateProvider;
 using TMS.ClientServices;
+using TSM.API.AuthDeligator;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+builder.Services.AddAuthorizationCore();
+
+// Aap ki tamam Client Services
 builder.Services.AddScoped<IUserClientService, UserClientService>();
 builder.Services.AddScoped<ITaskClientService, TaskClientService>();
 builder.Services.AddScoped<ITagsClientService, TagsClientService>();
 builder.Services.AddScoped<IStatusClientService, StatusClientService>();
 builder.Services.AddScoped<ISetupProjectClientService, SetupProjectClientService>();
+builder.Services.AddScoped<IAssignProjectClientService, AssignProjectClientService>();
+
+// Authentication aur Auth Handler
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+builder.Services.AddTransient<JwtAuthorizationHandler>();
 
 var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"];
 
-// 2. HttpClient ko configure karein
-builder.Services.AddScoped(sp => new HttpClient
+// HttpClient ko JwtAuthorizationHandler ke sath configure karna
+builder.Services.AddHttpClient("TaskerAPI", client =>
 {
-    BaseAddress = new Uri(apiBaseUrl ?? builder.HostEnvironment.BaseAddress)
-});
+    client.BaseAddress = new Uri(apiBaseUrl ?? builder.HostEnvironment.BaseAddress);
+})
+.AddHttpMessageHandler<JwtAuthorizationHandler>();
 
-//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+// Default HttpClient ko configure shuda client par set karna taake saari services ko token mil sakay
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("TaskerAPI"));
 
 await builder.Build().RunAsync();

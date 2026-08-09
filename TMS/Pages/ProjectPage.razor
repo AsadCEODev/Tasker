@@ -7,56 +7,56 @@
 
 
 
-@inject IUserClientService userService;
+@inject ISetupProjectClientService projectService;
 @inject IJSRuntime JS
 
-<div class="content-wrapper container-xxl p-0">
+<div class="content-wrapper container-xxl-fluid p-0">
     <div class="content-header row">
     </div>
     <div class="content-body">
         <!-- users list start -->
         <section class="app-user-list">
             <div class="row">
-                <div class="col-lg-3 col-sm-6">
+                <div class="col-lg-4 col-sm-6">
                     <div class="card">
                         <div class="card-body d-flex align-items-center justify-content-between">
                             <div>
-                                <h3 class="fw-bolder mb-75">@userSummary.TotalUserCount</h3>
-                                <span>Total Users</span>
+                                <h3 class="fw-bolder mb-75">3</h3>
+                                <span>Total Projects</span>
                             </div>
                             <div class="avatar bg-light-primary p-50">
                                 <span class="avatar-content">
-                                    <i data-feather="user" class="font-medium-4"></i>
+                                    <i data-feather="layers" class="font-medium-4"></i>
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-sm-6">
+                <div class="col-lg-4 col-sm-6">
                     <div class="card">
                         <div class="card-body d-flex align-items-center justify-content-between">
                             <div>
-                                <h3 class="fw-bolder mb-75">@userSummary.ActiveUserCount</h3>
-                                <span>Active Users</span>
+                                <h3 class="fw-bolder mb-75">4</h3>
+                                <span>Active Projects</span>
                             </div>
                             <div class="avatar bg-light-success p-50">
                                 <span class="avatar-content">
-                                    <i data-feather="user-check" class="font-medium-4"></i>
+                                    <i data-feather="activity" class="font-medium-4"></i>
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-sm-6">
+                <div class="col-lg-4 col-sm-6">
                     <div class="card">
                         <div class="card-body d-flex align-items-center justify-content-between">
                             <div>
-                                <h3 class="fw-bolder mb-75">@userSummary.InactiveUserCount</h3>
-                                <span>InActive Users</span>
+                                <h3 class="fw-bolder mb-75">3</h3>
+                                <span>InActive Projects</span>
                             </div>
                             <div class="avatar bg-light-danger p-50">
                                 <span class="avatar-content">
-                                    <i data-feather="user-x" class="font-medium-4"></i>
+                                    <i data-feather="pause-circle" class="font-medium-4"></i>
                                 </span>
                             </div>
                             
@@ -64,21 +64,6 @@
                     </div>
                 </div>
                 
-                <div class="col-lg-3 col-sm-6">
-                    <div class="card">
-                        <div class="card-body d-flex align-items-center justify-content-between">
-                            <div>
-                                <h3 class="fw-bolder mb-75">0</h3>
-                                <span>Pending Users</span>
-                            </div>
-                            <div class="avatar bg-light-warning p-50">
-                                <span class="avatar-content">
-                                    <i data-feather="user-plus" class="font-medium-4"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
             <!-- list and filter start -->
             <div class="card">
@@ -121,9 +106,9 @@
                                     </ul>
                                 </div>
 
-                                <button class="btn btn-primary" @onclick="OpenModel">
+                                @* <button class="btn btn-primary" @onclick="OpenModel">
                                     Add New User
-                                </button>
+                                </button> *@
 
                             </div>
 
@@ -139,7 +124,7 @@
                             </div>
 
                             <div class="mt-1 fw-bold">
-                                Loading users...
+                                Loading Projects...
                             </div>
                         </div>
                     }
@@ -152,40 +137,31 @@
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>User Name</th>
-                                        <th>Full Name</th>
-                                        <th>Father Name</th>
-                                        <th>Email</th>
-                                        <th>Phone No</th>
+                                        <th>Projet Name</th>
+                                        <th>Location</th>
+                                        <th>Address</th>
                                         <th>STATUS</th>
-                                        <th>ACTIONS</th>
+                                        
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @if (pagedResult.Data == null || !pagedResult.Data.Any())
+                                    @if (projectsList == null)
                                     {
                                         <tr><td colspan="6" class="text-center py-5">No users found.</td></tr>
                                     }
                                     else
                                     {
-                                        @foreach (var user in pagedResult.Data)
+                                        @foreach (var project in projectsList)
                                         {
                                             <tr>
-                                                <td><span>@user.UserName</span></td>
-                                                <td><span>@user.FullName</span></td>
-                                                <td><span>@user.FatherName</span></td>
-                                                <td><span>@user.Email</span></td>
-                                                <td><span>@user.PhoneNo</span></td>
-                                                <td>
-                                                    <span class="badge @(user.IsActive == true ? "bg-success" : "bg-danger")">
-                                                        @(user.IsActive == true ? "Active" : "InActive")
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-icon btn-outline-primary" @onclick="() => EditUser(user.Id)">
-                                                        <i data-feather="edit" class="font-medium-3"></i>
-                                                    </button>
-                                                </td>
+                                               
+                                                <td><span>@project.ProjectName</span></td>
+                                                <td><span>@project.ProjectCity</span></td>
+                                                <td><span>@project.ProjectAddress</span></td>
+                                                <td><span><span class="badge @(project.IsActive == true ? "bg-success" : "bg-danger")">
+                                                    @(project.IsActive == true ? "Active" : "InActive")
+                                                    </span></span></td>
+                                                
                                             </tr>
                                         }
                                     }
@@ -193,46 +169,7 @@
                             </table>
                         </div>
                     }
-                    <!-- Footer -->
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        @if (pagedResult != null && pagedResult.TotalCount > 0)
-                        {
-                            
-                            <span class="text-muted">
-                                Showing page @pagedResult.PageIndex of @pagedResult.TotalPages
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="text-muted">No records to display</span>
-                        }
-
-                        <nav>
-                            <ul class="pagination pagination-sm mb-0">
-                                <!-- Previous Button -->
-                                <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
-                                    <a class="page-link" @onclick="() => OnPageChanged(currentPage - 1)">‹</a>
-                                </li>
-
-                                <!-- Page Numbers -->
-                                @if (pagedResult != null && pagedResult.TotalPages > 0)
-                                {
-                                    @for (int i = 1; i <= pagedResult.TotalPages; i++)
-                                    {
-                                        int pageNum = i;
-                                        <li class="page-item @(currentPage == pageNum ? "active" : "")">
-                                            <a class="page-link" @onclick="() => OnPageChanged(pageNum)">@pageNum</a>
-                                        </li>
-                                    }
-                                }
-
-                                <!-- Next Button -->
-                                <li class="page-item @(pagedResult == null || currentPage >= pagedResult.TotalPages ? "disabled" : "")">
-                                    <a class="page-link" @onclick="() => OnPageChanged(currentPage + 1)">›</a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
+                    
                 </div>
             </div>
             <!-- list and filter end -->
@@ -242,7 +179,7 @@
     </div>
 </div>
 
-
+@* 
 <ModalPopup Title="User Details" @bind-IsVisible="isModalOpen">
     <EditForm Model="@userDto" OnValidSubmit="Save">
         <DataAnnotationsValidator />
@@ -304,11 +241,11 @@
         </div>
     </EditForm>
 </ModalPopup>
-
+ *@
 <ToastMessage @ref="toastRef" />
 
 @code {
-    private PaginationResponse<SetupUserDto> pagedResult = new();
+    private List<SetupProjectDto> projectsList = new();
     private int currentPage = 1;
     private int pageSize = 10;
 
@@ -332,9 +269,9 @@
         {
             isLoading = true;
 
-            pagedResult = await userService.GetAll(currentPage, pageSize, queryString);
+            projectsList = await projectService.GetActiveList();
 
-            userSummary = await userService.GetUsersSummary();
+            // userSummary = await userService.GetUsersSummary();
         }
         catch (Exception ex)
         {
@@ -367,76 +304,76 @@
     }
 
 
-    private async Task EditUser(long id)
-    {
-        try
-        {
-            var found = await userService.GetById(id);
-            if (found == null)
-            {
-                toastRef.Show("User not Found.", "error");
-                isModalOpen = false;
-            }
-            isDisabled = true;
-            userDto.Id = found.Id;
-            userDto.UserName = found.UserName;
-            userDto.FullName = found.FullName;
-            userDto.CNIC = found.CNIC;
-            userDto.Email = found.Email;
-            userDto.PhoneNo = found.PhoneNo;
-            userDto.HashPassword = found.HashPassword;
-            userDto.ConfirmPassword = found.HashPassword;
-            userDto.IsActive = found.IsActive;
+    // private async Task EditUser(long id)
+    // {
+    //     try
+    //     {
+    //         var found = await userService.GetById(id);
+    //         if (found == null)
+    //         {
+    //             toastRef.Show("User not Found.", "error");
+    //             isModalOpen = false;
+    //         }
+    //         isDisabled = true;
+    //         userDto.Id = found.Id;
+    //         userDto.UserName = found.UserName;
+    //         userDto.FullName = found.FullName;
+    //         userDto.CNIC = found.CNIC;
+    //         userDto.Email = found.Email;
+    //         userDto.PhoneNo = found.PhoneNo;
+    //         userDto.HashPassword = found.HashPassword;
+    //         userDto.ConfirmPassword = found.HashPassword;
+    //         userDto.IsActive = found.IsActive;
 
-            isModalOpen = true;
+    //         isModalOpen = true;
 
-        }
-        catch (Exception ex)
-        {
-            throw new Exception(ex.Message);
-        }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         throw new Exception(ex.Message);
+    //     }
 
 
-    }
+    // }
 
-    private async Task Save()
-    {
-        try
-        {
-            int result;
+    // private async Task Save()
+    // {
+    //     try
+    //     {
+    //         int result;
 
-            if(userDto.Id > 0)
-            {
-                result = await userService.Update(userDto);
-            }
-            else
-            {
-                result = await userService.Save(userDto);
+    //         if(userDto.Id > 0)
+    //         {
+    //             result = await userService.Update(userDto);
+    //         }
+    //         else
+    //         {
+    //             result = await userService.Save(userDto);
 
-            }
-            if (result == 1)
-            {
-                toastRef.Show("User saved successfully!", "success");
+    //         }
+    //         if (result == 1)
+    //         {
+    //             toastRef.Show("User saved successfully!", "success");
 
-                await LoadData();
-                isModalOpen = false;
-                userDto = new();
-            }
-            else if(result == -1)
-            {
-                toastRef.Show("User Name already Exist.", "error");
-            }
-            else
-            {
-                toastRef.Show("Faild to Save.", "error");
-            }
-        }
-        catch (Exception ex)
-        {
-            toastRef.Show($"Error: {ex.Message}", "error");
+    //             await LoadData();
+    //             isModalOpen = false;
+    //             userDto = new();
+    //         }
+    //         else if(result == -1)
+    //         {
+    //             toastRef.Show("User Name already Exist.", "error");
+    //         }
+    //         else
+    //         {
+    //             toastRef.Show("Faild to Save.", "error");
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         toastRef.Show($"Error: {ex.Message}", "error");
 
-        }
-    }
+    //     }
+    // }
 
 
     private void HandleInput(ChangeEventArgs e)
@@ -457,13 +394,13 @@
         {
             await InvokeAsync(async () =>
             {
-                pagedResult = await userService.GetAll(currentPage, pageSize, queryString);
+                projectsList = await projectService.GetAll();
                 StateHasChanged();
             });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Error log karein
+            toastRef.Show($"Error: {ex.Message}", "error");
         }
     }
 
