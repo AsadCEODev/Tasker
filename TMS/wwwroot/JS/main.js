@@ -94,19 +94,40 @@ window.updateSelect2Value = function (element, value) {
 };
 
 
+// window.initFeatherObserver = function () {
+
+//     if (window.featherObserver)
+//         return;
+
+//     window.featherObserver = new MutationObserver(function () {
+//         if (window.feather) {
+//             feather.replace();
+//         }
+//     });
+
+//     window.featherObserver.observe(document.body, {
+//         childList: true,
+//         subtree: true
+//     });
+// }
+
 window.initFeatherObserver = function () {
+    if (window.featherObserver) return;
 
-    if (window.featherObserver)
-        return;
-
-    window.featherObserver = new MutationObserver(function () {
-        if (window.feather) {
-            feather.replace();
+    window.featherObserver = new MutationObserver(function (mutations, observer) {
+        // Ensure feather library exists and the replace method is available
+        if (window.feather && typeof window.feather.replace === 'function') {
+            try {
+                window.feather.replace();
+            } catch (error) {
+                console.warn("Feather replacement failed:", error);
+            }
         }
     });
 
+    // Start observing the body for added/modified nodes
     window.featherObserver.observe(document.body, {
         childList: true,
         subtree: true
     });
-}
+};

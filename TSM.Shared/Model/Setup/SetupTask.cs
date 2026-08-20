@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
+using TMS.Shared.Enum;
 
 namespace TMS.Shared.Model.Setup
 {
@@ -21,7 +22,7 @@ namespace TMS.Shared.Model.Setup
         [ForeignKey(nameof(TagId))]
         public SetupTag? TagObj { get; set; }
 
-        public int? StatusId { get; set; }
+        public int? StatusId { get; set; } = (int)StatusEnum.Pending;
         [ForeignKey(nameof(StatusId))]
         public SetupStatus? StatusObj { get; set; }
 
@@ -31,9 +32,12 @@ namespace TMS.Shared.Model.Setup
         [ForeignKey(nameof(ProjectId))]
         public SetupProject? ProjectObj { get; set; }
 
-        public long? UserId { get; set; }
+        public long UserId { get; set; }
         [ForeignKey(nameof(UserId))]
         public SetupUser? UserObj { get; set; }
+
+        public int? Progress { get; set; } = 0;
+        public string? FileName { get; set; } = string.Empty;
 
         public DateTime CreatedOn { get; set; } = DateTime.Now;
 
@@ -59,11 +63,8 @@ namespace TMS.Shared.Model.Setup
 
         [Range(1, int.MaxValue, ErrorMessage = "Please select a Tag.")]
         public int TagId { get; set; }
-        [NotMapped]
         public SetupTag TagObj { get; set; } = new();
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a Status.")]
-        public int? StatusId { get; set; }
-        [NotMapped]
+        public int? StatusId { get; set; } = (int)StatusEnum.Pending;
         public SetupStatus? StatusObj { get; set; } = new();
 
         [Required(ErrorMessage = "Due Date is required.")]
@@ -71,11 +72,11 @@ namespace TMS.Shared.Model.Setup
 
         [Range(1, int.MaxValue, ErrorMessage = "Please select a Project.")]
         public int ProjectId { get; set; }
-        [NotMapped]
         public SetupProject? ProjectObj { get; set; } = new();
-        public long? UserId { get; set; } = null;
-        [NotMapped]
+        public long UserId { get; set; }
         public SetupUser? UserObj { get; set; } = new();
+        public int? Progress { get; set; } = 0;
+        public string? FileName { get; set; } = string.Empty;
         public DateTime CreatedOn { get; set; } = DateTime.Now;
 
         public string CreatedBy { get; set; } = string.Empty;

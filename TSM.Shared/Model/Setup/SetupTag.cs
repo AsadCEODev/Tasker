@@ -10,11 +10,13 @@ namespace TMS.Shared.Model.Setup
         [Key]
         public int Id { get; set; }
         public string TagTitle { get; set; } = string.Empty;
+        public string Color { get; set; } = string.Empty;
     }
 
     public class SetupTagDto
     {
         public int Id { get; set; }
         public string TagTitle { get; set; } = string.Empty;
+        public string Color { get; set; } = string.Empty;
     }
 }

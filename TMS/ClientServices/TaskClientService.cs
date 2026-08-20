@@ -1,5 +1,7 @@
-﻿using System.Net.Http.Json;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using System.Net.Http.Json;
 using System.Text.Json;
+using TMS.Shared.Model.Filters;
 using TMS.Shared.Model.Setup;
 using TMS.Shared.Pagination;
 
@@ -15,11 +17,11 @@ namespace TMS.ClientServices
             httpClient = _httpClient;
         }
 
-        public async Task<PaginationResponse<SetupTaskDto>> GetAll(int pageIndex, int pageSize)
+        public async Task<PaginationResponse<SetupTaskDto>> GetAll(FilterDto filter)
         {
             try
             {
-                var response = await httpClient.GetAsync($"{baseUrl}/GetAll?pageNumber={pageIndex}&pageSize={pageSize}");
+                var response = await httpClient.PostAsJsonAsync($"{baseUrl}/GetAll", filter);
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonString = await response.Content.ReadAsStringAsync();
@@ -61,46 +63,41 @@ namespace TMS.ClientServices
 
         }
 
-        public async Task<int> Save(SetupTaskDto dto)
+        public async Task<int> Save(SetupTaskDto dto, IBrowserFile? file)
         {
             try
             {
-                var response = await httpClient.PostAsJsonAsync($"{baseUrl}/Save", dto);
-                if (response.IsSuccessStatusCode)
-                {
-                    return 1;
-                }
-                if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
-                {
-                    return -1; // Already exists
-                }
+                using var content = BuildMultipartContent(dto, file);
+                var response = await httpClient.PostAsync($"{baseUrl}/Save", content);
+
+                if (response.IsSuccessStatusCode) return 1;
+                if (response.StatusCode == System.Net.HttpStatusCode.Conflict) return -1;
                 return 0;
             }
             catch (Exception ex)
             {
+
                 throw new Exception(ex.Message);
             }
         }
 
-        public async Task<int> Update(SetupTaskDto dto)
+        public async Task<int> Update(SetupTaskDto dto, IBrowserFile? file)
         {
             try
             {
-                var response = await httpClient.PostAsJsonAsync($"{baseUrl}/Update", dto);
-                if (response.IsSuccessStatusCode)
-                {
-                    return 1;
-                }
-                if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
-                {
-                    return -1; // Already exists
-                }
+                using var content = BuildMultipartContent(dto, file);
+                var response = await httpClient.PostAsync($"{baseUrl}/Update", content);
+
+                if (response.IsSuccessStatusCode) return 1;
+                if (response.StatusCode == System.Net.HttpStatusCode.Conflict) return -1;
                 return 0;
             }
             catch (Exception ex)
             {
+
                 throw new Exception(ex.Message);
             }
+            
         }
 
         public async Task<bool> Delete(long id)
@@ -120,14 +117,53 @@ namespace TMS.ClientServices
                 throw new Exception(ex.Message);
             }
         }
+
+        private MultipartFormDataContent BuildMultipartContent(SetupTaskDto dto, IBrowserFile? file)
+        {
+            var content = new MultipartFormDataContent();
+
+            content.Add(new StringContent(dto.Id.ToString()), nameof(dto.Id));
+            content.Add(new StringContent(dto.TaskTitle ?? string.Empty), nameof(dto.TaskTitle));
+            content.Add(new StringContent(dto.TaskDesc ?? string.Empty), nameof(dto.TaskDesc));
+            content.Add(new StringContent(dto.TagId.ToString()), nameof(dto.TagId));
+            content.Add(new StringContent(dto.ProjectId.ToString()), nameof(dto.ProjectId));
+            content.Add(new StringContent(dto.UserId.ToString()), nameof(dto.UserId));
+
+            // ISO format for DateTime
+            content.Add(new StringContent(dto.DueDate.ToString("o")), nameof(dto.DueDate));
+
+            if (dto.StatusId.HasValue)
+            {
+                content.Add(new StringContent(dto.StatusId.Value.ToString()), nameof(dto.StatusId));
+            }
+
+            if (dto.Progress.HasValue)
+            {
+                content.Add(new StringContent(dto.Progress.Value.ToString()), nameof(dto.Progress));
+            }
+
+            if (!string.IsNullOrEmpty(dto.FileName))
+            {
+                content.Add(new StringContent(dto.FileName), nameof(dto.FileName));
+            }
+
+            // File handling
+            if (file != null)
+            {
+                var stream = file.OpenReadStream(1024 * 1024 * 10); // Max 10 MB
+                content.Add(new StreamContent(stream), "file", file.Name);
+            }
+
+            return content;
+        }
     }
 
     public interface ITaskClientService
     {
-        Task<PaginationResponse<SetupTaskDto>> GetAll(int pageIndex, int pageSize);
-        Task<SetupTaskDto> GetById(long Id);
-        Task<int> Save(SetupTaskDto dto);
-        Task<int> Update(SetupTaskDto dto);
+        Task<PaginationResponse<SetupTaskDto>> GetAll(FilterDto filter);
+        Task<SetupTaskDto> GetById(long id);
+        Task<int> Save(SetupTaskDto dto, IBrowserFile? file);
+        Task<int> Update(SetupTaskDto dto, IBrowserFile? file);
         Task<bool> Delete(long id);
     }
 }

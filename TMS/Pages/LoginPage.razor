@@ -148,7 +148,7 @@
 
             authProvider.NotifyUserLogin(result.Token);
 
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo("/", forceLoad: true);
         }
         catch
         {

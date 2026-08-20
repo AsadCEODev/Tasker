@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TMS.Shared.Model;
 using TMS.Shared.Model.Setup;
 
 namespace TMS.API.Data
@@ -45,6 +46,7 @@ namespace TMS.API.Data
         public DbSet<SetupDepartment> SetupDepartments { get; set; }
         public DbSet<SetupDesignation> SetupDesignations { get; set; }
         public DbSet<UserProject> UserProjects { get; set; }
+        public DbSet<UserActivityLog> UserActivityLogs { get; set; }
 
     }
 

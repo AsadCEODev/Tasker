@@ -1,4 +1,4 @@
-﻿ @inject IJSRuntime JS
+﻿@inject IJSRuntime JS
 @inject NavigationManager NavManager
 
 <div class="main-menu menu-fixed menu-light menu-accordion menu-shadow" data-scroll-to-active="true">
@@ -58,7 +58,36 @@
             <li>
                 <NavLink href="/Tasks"><i data-feather="check-square"></i><span>Create Tasks</span></NavLink>
             </li>
-          
+            <li>
+                <NavLink><i data-feather="list"></i><span>Todo Tasks</span></NavLink>
+            </li>
+            <li>
+                <NavLink><i data-feather="calendar"></i><span>Calendar</span></NavLink>
+            </li>
+            <li class="nav-item has-sub @(chatOpen ? "open" : "")">
+
+                <a href="#"
+                   class="d-flex align-items-center"
+                   @onclick="ToggleChats"
+                   @onclick:preventDefault="true">
+
+                    <i data-feather="message-square"></i>
+                    <span>Chat</span>
+                </a>
+
+                <ul class="menu-content"
+                    style="display:@(chatOpen ? "block" : "none")">
+                    <li>
+                        <NavLink href="/UsersChat"><i data-feather="user"></i><span>Users Chat</span></NavLink>
+                    </li>
+                    <li>
+                        <NavLink href="/Channels"><i data-feather="hash"></i><span>Channels</span> </NavLink>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <NavLink><i data-feather="bell"></i><span>Notifications</span></NavLink>
+            </li>
         </ul>
     </div>
 </div>
@@ -66,11 +95,17 @@
 @code {
 
     bool settingsOpen;
+    bool chatOpen;
 
     void ToggleSettings()
     {
         settingsOpen = !settingsOpen;
-        
+
+    }
+    void ToggleChats()
+    {
+        chatOpen = !chatOpen;
+
     }
 
 }

@@ -38,8 +38,7 @@ namespace TSM.API.Services
 
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            var key = Encoding.ASCII.GetBytes(
-                configuration["Jwt:Key"]!);
+            var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"]!);
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -50,7 +49,7 @@ namespace TSM.API.Services
                     new Claim(ClaimTypes.Name, user.FullName ?? string.Empty)
                 }),
 
-                Expires = DateTime.UtcNow.AddDays( Convert.ToDouble(configuration["Jwt:ExpireMinutes"])),
+               // Expires = DateTime.UtcNow.AddDays( Convert.ToDouble(configuration["Jwt:ExpireMinutes"])),
                 Issuer = configuration["Jwt:Issuer"],
                 Audience = configuration["Jwt:Audience"],
 

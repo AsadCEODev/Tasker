@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TMS.API.Services.SetupServices;
+using TMS.Shared.Model.Filters;
 using TMS.Shared.Model.Setup;
 using TMS.Shared.Pagination;
 
@@ -18,23 +19,23 @@ namespace TMS.API.Controllers
             thisService = service;
         }
 
-        [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll(int pageNumber = 1, int pageSize = 10)
+        [HttpPost("GetAll")]
+        public async Task<IActionResult> GetAll(FilterDto filter)
         {
             try
             {
-                var lst = await thisService.GetAll(pageNumber,pageSize);
-                if(lst == null)
+                var converteddto = filter.Adapt<FilterModel>();
+                var lst = await thisService.GetAll(converteddto);
+                if (lst == null)
                 {
                     return NotFound(lst);
                 }
                 var converted = lst.Adapt<PaginationResponse<SetupTaskDto>>();
                 return Ok(converted);
-
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -50,53 +51,59 @@ namespace TMS.API.Controllers
                 }
                 var converted = found.Adapt<SetupTaskDto>();
                 return Ok(converted);
-
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
         [HttpPost("Save")]
-        public async Task<ActionResult<int>> Save(SetupTaskDto dto)
+        public async Task<ActionResult<int>> Save([FromForm] SetupTaskDto dto,IFormFile? file)
         {
             try
             {
                 var converted = dto.Adapt<SetupTask>();
-                int result = await thisService.Save(converted);
+
+                int result = await thisService.Save(converted, file);
+
                 if (result == 1)
                     return Ok(result);
 
                 if (result == -1)
                     return Conflict("Task already exists");
 
-                return BadRequest("Task Not Saved Successfully."); 
+                return BadRequest("Task Not Saved Successfully.");
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
         [HttpPost("Update")]
-        public async Task<ActionResult<int>> Update(SetupTaskDto dto)
+        public async Task<ActionResult<int>> Update([FromForm] SetupTaskDto dto, IFormFile? file)
         {
             try
             {
                 var converted = dto.Adapt<SetupTask>();
-                int result = await thisService.Update(converted);
+
+                // Service mein file pass ki ja rahi hai
+                int result = await thisService.Update(converted, file);
+
                 if (result == 1)
                     return Ok(result);
 
-                return BadRequest(result);
+                if (result == -1)
+                    return Conflict("Task already exists");
+
+                return BadRequest("Task Not Updated Successfully.");
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
-
 
         [HttpDelete("Delete")]
         public async Task<IActionResult> Delete(long id)
@@ -112,7 +119,7 @@ namespace TMS.API.Controllers
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
     }
