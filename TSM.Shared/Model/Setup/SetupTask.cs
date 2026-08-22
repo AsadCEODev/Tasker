@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 using TMS.Shared.Enum;
+using TMS.Shared.Pagination;
 
 namespace TMS.Shared.Model.Setup
 {
@@ -84,5 +85,29 @@ namespace TMS.Shared.Model.Setup
         public DateTime? UpdatedOn { get; set; }
 
         public string? UpdatedBy { get; set; }
+    }
+
+
+    public class TaskSummary
+    {
+        public int TotalTasks { get; set; } = 0;
+        public int TotalPendingTasks { get; set; } = 0;
+        public int TotalInProcessTasks { get; set; } = 0;
+        public int TotalCompletedTasks { get; set; } = 0;
+        public int TotalLowTasks { get; set; } = 0;
+        public int TotalMediumTasks { get; set; } = 0;
+        public int TotalHighTasks { get; set; } = 0;
+    }
+    public class TaskSummaryDto
+    {
+        public int TotalTasks { get; set; } = 0;
+        public int TotalPendingTasks { get; set; } = 0;
+        public int TotalInProcessTasks { get; set; } = 0;
+        public int TotalCompletedTasks { get; set; } = 0;
+        public int TotalLowTasks { get; set; } = 0;
+        public int TotalMediumTasks { get; set; } = 0;
+        public int TotalHighTasks { get; set; } = 0;
+
+
     }
 }

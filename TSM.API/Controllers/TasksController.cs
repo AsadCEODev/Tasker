@@ -122,5 +122,21 @@ namespace TMS.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpPost("GetTasksSummary")]
+        public async Task<IActionResult> GetTasksSummary(FilterDto filter)
+        {
+            try
+            {
+                var converted = filter.Adapt<FilterModel>();
+                var result = await thisService.GetTasksSummary(converted);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

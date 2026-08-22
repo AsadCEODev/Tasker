@@ -156,6 +156,33 @@ namespace TMS.ClientServices
 
             return content;
         }
+
+
+        public async Task<TaskSummaryDto> GetTasksSummary(FilterDto filter)
+        {
+            try
+            {
+                var response = await httpClient.PostAsJsonAsync($"{baseUrl}/GetTasksSummary", filter);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // ReadAsFromJsonAsync automatically JSON ko deserialize kar deta hai
+                    var result = await response.Content.ReadFromJsonAsync<TaskSummaryDto>(new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                    return result ?? new TaskSummaryDto();
+                }
+
+                return new TaskSummaryDto();
+            }
+            catch (Exception ex)
+            {
+                
+                throw new Exception($"An error occurred while fetching task summary: {ex.Message}", ex);
+            }
+        }
     }
 
     public interface ITaskClientService
@@ -165,5 +192,6 @@ namespace TMS.ClientServices
         Task<int> Save(SetupTaskDto dto, IBrowserFile? file);
         Task<int> Update(SetupTaskDto dto, IBrowserFile? file);
         Task<bool> Delete(long id);
+        Task<TaskSummaryDto> GetTasksSummary(FilterDto filter);
     }
 }

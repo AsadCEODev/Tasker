@@ -10,6 +10,7 @@ using TMS.Shared.Model.Filters;
 using TMS.Shared.Model.Setup;
 using TMS.Shared.Pagination;
 using TSM.API.Data;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TMS.API.Services.SetupServices
 {
@@ -41,7 +42,7 @@ namespace TMS.API.Services.SetupServices
                 .Include(x => x.UserObj);
         }
 
-        public async Task<PaginationResponse<SetupTaskDto>> GetAll(FilterModel filter)
+        public async Task<PaginationResponse<SetupTask>> GetAll(FilterModel filter)
         {
             try
             {
@@ -60,7 +61,16 @@ namespace TMS.API.Services.SetupServices
                 if (!string.IsNullOrWhiteSpace(filter.QueryString))
                 {
                     var searchTerm = filter.QueryString.Trim().ToLower();
-                    query = query.Where(x => x.TaskTitle.ToLower().Contains(searchTerm));
+
+                    query = query.Where(x =>
+                        (!string.IsNullOrEmpty(x.TaskTitle) && x.TaskTitle.ToLower().Contains(searchTerm)) ||
+                        (!string.IsNullOrEmpty(x.TaskDesc) && x.TaskDesc.ToLower().Contains(searchTerm)) ||
+                        (!string.IsNullOrEmpty(x.ProjectObj.ProjectName) && x.ProjectObj.ProjectName.ToLower().Contains(searchTerm)) ||
+                        (!string.IsNullOrEmpty(x.UserObj.UserName) && x.UserObj.UserName.ToLower().Contains(searchTerm)) ||
+                        (!string.IsNullOrEmpty(x.UserObj.FullName) && x.UserObj.FullName.ToLower().Contains(searchTerm)) ||
+                        
+                        (!string.IsNullOrEmpty(x.CreatedBy) && x.CreatedBy.ToLower().Contains(searchTerm))
+                    );
                 }
 
                 if (filter.TagId != null && filter.TagId > 0)
@@ -78,10 +88,9 @@ namespace TMS.API.Services.SetupServices
                 var items = await query.OrderByDescending(x => x.Id)
                     .Skip((filter.PageNumber - 1) * filter.PageSize)
                     .Take(filter.PageSize)
-                    .ProjectToType<SetupTaskDto>()
                     .ToListAsync();
 
-                return new PaginationResponse<SetupTaskDto>
+                return new PaginationResponse<SetupTask>
                 {
                     Data = items,
                     PageIndex = filter.PageNumber,
@@ -96,13 +105,12 @@ namespace TMS.API.Services.SetupServices
             }
         }
 
-        public async Task<SetupTaskDto?> GetById(long id)
+        public async Task<SetupTask?> GetById(long id)
         {
             try
             {
                 return await GetBaseSetupTaskQuery()
                     .Where(x => x.Id == id)
-                    .ProjectToType<SetupTaskDto>()
                     .FirstOrDefaultAsync();
             }
             catch (Exception ex)
@@ -307,14 +315,40 @@ namespace TMS.API.Services.SetupServices
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<TaskSummary> GetTasksSummary(FilterModel filter)
+        {
+            try
+            {
+                var parameters = new Dictionary<string, object>
+                {
+                    { "@UserId", LoginUserId },
+                    { "@DateFrom", filter.FromDate },
+                    { "@DateTo", filter.ToDate }
+                };
+                var summary = await dbContext.QueryFirstOrDefaultAsync<TaskSummary>("Proc_TaskSummary_Data", parameters);
+                if(summary == null)
+                {
+                    return new();
+                }
+                return summary;
+                
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 
     public interface ITaskService
     {
-        Task<PaginationResponse<SetupTaskDto>> GetAll(FilterModel filter);
-        Task<SetupTaskDto?> GetById(long id);
+        Task<PaginationResponse<SetupTask>> GetAll(FilterModel filter);
+        Task<SetupTask?> GetById(long id);
         Task<int> Save(SetupTask model, IFormFile? file);
         Task<int> Update(SetupTask model, IFormFile? file);
         Task<bool> Delete(long id);
+        Task<TaskSummary> GetTasksSummary(FilterModel filter);
     }
 }

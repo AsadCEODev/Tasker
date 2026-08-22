@@ -13,26 +13,41 @@ namespace TMS.API.Services.SetupServices
             this.dbContext = dbContext;
         }
 
+        private IQueryable<SetupUser> BaseQuery()
+        {
+            var query = dbContext.SetupUsers
+                .Include(x => x.DepartmentObj)
+                .Include(y => y.DesignationObj)
+                .AsNoTracking();
+
+            return query;
+        }
+
+        private IQueryable<SetupUser> FilteredQuery(string? queryString)
+        {
+            // BaseQuery se starting query lein jismein includes aur tracking settings pehle se hon
+            var query = BaseQuery();
+
+            if (!string.IsNullOrWhiteSpace(queryString))
+            {
+                query = query.Where(u =>
+                    (!string.IsNullOrEmpty(u.UserName) && u.UserName.Contains(queryString)) ||
+                    (!string.IsNullOrEmpty(u.Email) && u.Email.Contains(queryString)) ||
+                    (!string.IsNullOrEmpty(u.PhoneNo) && u.PhoneNo.Contains(queryString)) ||
+                    (!string.IsNullOrEmpty(u.FullName) && u.FullName.Contains(queryString)) ||
+                    (!string.IsNullOrEmpty(u.CNIC) && u.CNIC.Contains(queryString))
+                );
+            }
+
+            return query;
+        }
 
         public async Task<PaginationResponse<SetupUser>> GetAll(int pageIndex, int pageSize, string? queryString)
         {
             try
             {
                 // 1. Base query define karein
-                var query = dbContext.SetupUsers.AsQueryable();
-
-                // 2. Agar queryString empty nahi hai to filter lagayein
-                if (!string.IsNullOrWhiteSpace(queryString))
-                {
-                    // Apni requirement ke mutabiq yahan columns add karein (e.g., Name ya Email)
-                    query = query.Where(u => u.UserName.Contains(queryString) 
-                    || u.Email.Contains(queryString)
-                    || u.PhoneNo.Contains(queryString)
-                    || u.FullName.Contains(queryString)
-                    || u.CNIC.Contains(queryString)
-
-                    );
-                }
+                var query = FilteredQuery(queryString);
 
                 // 3. Pehle TotalCount nikalein (filtered data ka)
                 var totalCount = await query.CountAsync();
@@ -62,7 +77,7 @@ namespace TMS.API.Services.SetupServices
         {
             try
             {
-                var list = dbContext.SetupUsers.ToList();
+                var list = await BaseQuery().ToListAsync();
                 return list;
             }
             catch (Exception)
@@ -78,7 +93,7 @@ namespace TMS.API.Services.SetupServices
         {
             try
             {
-                var result = await dbContext.SetupUsers.FirstOrDefaultAsync(x => x.Id == id);
+                var result = await BaseQuery().FirstOrDefaultAsync(x => x.Id == id);
                 if (result == null)
                 {
                     return new SetupUser();
@@ -126,6 +141,8 @@ namespace TMS.API.Services.SetupServices
                 existingUser.PhoneNo = model.PhoneNo;
                 existingUser.Email = model.Email;
                 existingUser.IsActive = model.IsActive;
+                existingUser.DepartmentId = model.DepartmentId;
+                existingUser.DesignationId = model.DesignationId;
                 existingUser.UpdatedBy = model.UpdatedBy;
                 existingUser.UpdatedOn = DateTime.Now;
 

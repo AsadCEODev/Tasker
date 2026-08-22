@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 using System.Text;
 
 namespace TMS.Shared.Model.Filters
@@ -9,6 +10,7 @@ namespace TMS.Shared.Model.Filters
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
         public string? QueryString { get; set; }
+        public long? UsertId { get; set; } = 0;
         public int? TagId { get; set; }
         public int? StatusId { get; set; }
         public int PageNumber { get; set; } = 1;
@@ -20,6 +22,7 @@ namespace TMS.Shared.Model.Filters
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
         public string? QueryString { get; set; }
+        public long? UsertId { get; set; } = 0;
         public int? TagId { get; set; }
         public int? StatusId { get; set; }
         public int PageNumber { get; set; } = 1;

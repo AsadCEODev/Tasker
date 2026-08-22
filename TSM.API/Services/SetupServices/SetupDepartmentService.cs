@@ -41,7 +41,7 @@ namespace TSM.API.Services.SetupServices
         {
             try
             {
-                var found = dbContext.SetupDepartments.FirstOrDefault(x => x.DepartmentonName.ToLower() == model.DepartmentonName.ToLower());
+                var found = dbContext.SetupDepartments.FirstOrDefault(x => x.DepartmentName.ToLower() == model.DepartmentName.ToLower());
                 if(found != null)
                 {
                     return -1;
@@ -61,13 +61,13 @@ namespace TSM.API.Services.SetupServices
         {
             try
             {
-                var found = dbContext.SetupDepartments.FirstOrDefault(x => x.DepartmentonName.ToLower() == model.DepartmentonName.ToLower() && x.Id != model.Id);
+                var found = dbContext.SetupDepartments.FirstOrDefault(x => x.DepartmentName.ToLower() == model.DepartmentName.ToLower() && x.Id != model.Id);
                 if (found != null)
                 {
                     return -1;
                 }
 
-                found.DepartmentonName = model.DepartmentonName;
+                found.DepartmentName = model.DepartmentName;
                 
                 await dbContext.SaveChangesAsync();
                 return 0;

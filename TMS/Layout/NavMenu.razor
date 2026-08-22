@@ -367,7 +367,7 @@
             var authProvider = (CustomAuthStateProvider)AuthStateProvider;
             await authProvider.NotifyUserLogout();
 
-            Navigation.NavigateTo("/Login");
+            Navigation.NavigateTo("/Login",forceLoad: true);
         }
         catch (Exception ex)
         {

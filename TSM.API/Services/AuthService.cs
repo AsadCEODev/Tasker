@@ -24,41 +24,51 @@ namespace TSM.API.Services
 
         public async Task<string?> LoginAsync(LoginDto model)
         {
-         
-
-            var user = await dbContext.SetupUsers.FirstOrDefaultAsync(x => x.UserName == model.UserName);
-
-            if (user == null)
-                return null;
-
-            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(model.Password,user.HashPassword);
-
-            if (!isPasswordValid)
-                return null;
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-
-            var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"]!);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
+            try
             {
-                Subject = new ClaimsIdentity(new[]
+
+                var user = await dbContext.SetupUsers.Include(x => x.DepartmentObj)
+                .Include(y => y.DesignationObj)
+                .FirstOrDefaultAsync(x => x.UserName == model.UserName);
+
+                if (user == null)
+                    return null;
+
+                bool isPasswordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.HashPassword);
+
+                if (!isPasswordValid)
+                    return null;
+
+                var tokenHandler = new JwtSecurityTokenHandler();
+
+                var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"]!);
+
+                var tokenDescriptor = new SecurityTokenDescriptor
                 {
+                    Subject = new ClaimsIdentity(new[]
+                    {
                     new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
                     new Claim(ClaimTypes.Email,user.Email ?? string.Empty),
                     new Claim(ClaimTypes.Name, user.FullName ?? string.Empty)
                 }),
 
-               // Expires = DateTime.UtcNow.AddDays( Convert.ToDouble(configuration["Jwt:ExpireMinutes"])),
-                Issuer = configuration["Jwt:Issuer"],
-                Audience = configuration["Jwt:Audience"],
+                    // Expires = DateTime.UtcNow.AddDays( Convert.ToDouble(configuration["Jwt:ExpireMinutes"])),
+                    Issuer = configuration["Jwt:Issuer"],
+                    Audience = configuration["Jwt:Audience"],
 
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),SecurityAlgorithms.HmacSha256Signature)
-            };
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                };
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
+                var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            return tokenHandler.WriteToken(token);
+                return tokenHandler.WriteToken(token);
+
+            }
+            catch (Exception ex)
+            {
+               throw new Exception(ex.Message);
+            }
+
         }
 
     }

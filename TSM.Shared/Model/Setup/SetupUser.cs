@@ -26,6 +26,13 @@ namespace TMS.Shared.Model.Setup
 
         [MaxLength(50)]
         public string Email { get; set; } = string.Empty;
+        public int? DepartmentId { get; set; } = 0;
+        [ForeignKey(nameof(DepartmentId))]
+        public SetupDepartment? DepartmentObj { get; set; } = null;
+        
+        public int? DesignationId { get; set; } = 0;
+        [ForeignKey(nameof(DesignationId))]
+        public SetupDesignation? DesignationObj { get; set; } = null;
 
         [MaxLength(100)]
         public string HashPassword { get; set; } = string.Empty;
@@ -69,6 +76,10 @@ namespace TMS.Shared.Model.Setup
         [EmailAddress(ErrorMessage = "Invalid Email Address.")]
         public string Email { get; set; } = string.Empty;
 
+        public int? DepartmentId { get; set; } = 0;
+        public SetupDepartmentDto? DepartmentObj { get; set; } = null;
+        public int? DesignationId { get; set; } = 0;
+        public SetupDesignationDto? DesignationObj { get; set;} = null;
 
         [Required(ErrorMessage = "Password is required.")]
         [MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]

@@ -9,7 +9,7 @@ namespace TMS.Shared.Model.Setup
     {
         [Key]
         public int Id { get; set; }
-        public string DepartmentonName { get; set; } = string.Empty;
+        public string DepartmentName { get; set; } = string.Empty;
         public bool IsActive { get; set; } = false;
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedOn { get; set; } = DateTime.Now;
