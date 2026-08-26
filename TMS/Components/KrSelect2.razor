@@ -2,18 +2,18 @@
 @typeparam TValue
 @implements IDisposable
 
-<div class=" position-relative" @ref="_elementRef">
+<div class="position-relative @(Disabled ? "opacity-50" : "")" @ref="_elementRef">
     @if (!string.IsNullOrEmpty(Label))
     {
         <label class="form-label">@Label</label>
     }
 
-    <!-- Main Select Box (Jisme click karne par dropdown khulega) -->
-    <div class="form-control d-flex justify-content-between align-items-center cursor-pointer bg-white"
+    <!-- Main Select Box (Disabled state handle ki gayi hai) -->
+    <div class="form-control d-flex justify-content-between align-items-center @(Disabled ? "bg-light text-muted" : "cursor-pointer bg-white")"
          @onclick="ToggleDropdown"
-         style="min-height: 38px; cursor: pointer; user-select: none;">
-        
-        <div class="d-flex flex-wrap gap-1 align-items-center" style="max-height: 70px;overflow-y: auto;">
+         style="min-height: 38px; cursor: @(Disabled ? "not-allowed" : "pointer"); user-select: none;">
+
+        <div class="d-flex flex-wrap gap-1 align-items-center" style="max-height: 70px; overflow-y: auto;">
             @if (IsMultiple)
             {
                 var selectedItems = GetSelectedItems();
@@ -23,17 +23,18 @@
                 }
                 else
                 {
-                    
                     @foreach (var item in selectedItems)
                     {
                         var val = ValueSelector(item);
                         var text = TextSelector(item);
                         <span class="badge bg-primary d-inline-flex align-items-center gap-1 py-1 px-2" style="font-size: 0.85rem;">
                             @text
-                            <span @onclick:stopPropagation="true" @onclick="() => RemoveItem(val)" style="cursor: pointer; font-weight: bold;">&times;</span>
+                            @if (!Disabled)
+                            {
+                                <span @onclick:stopPropagation="true" @onclick="() => RemoveItem(val)" style="cursor: pointer; font-weight: bold;">&times;</span>
+                            }
                         </span>
                     }
-                   
                 }
             }
             else
@@ -52,11 +53,11 @@
         <i class="fa fa-chevron-down text-muted small ms-2"></i>
     </div>
 
-    <!-- Dropdown Panel (Search bar aur options list) -->
-    @if (_isOpen)
+    <!-- Dropdown Panel (Sirf tab khulega jab Disabled false ho) -->
+    @if (_isOpen && !Disabled)
     {
-        <div class="card shadow-sm border position-absolute w-100  shadow-lg" style="z-index: 1050; max-height: 250px; display: flex; flex-direction: column;">
-            
+        <div class="card shadow-sm border position-absolute w-100 shadow-lg" style="z-index: 1050; max-height: 250px; display: flex; flex-direction: column;">
+
             <!-- Search Bar inside dropdown -->
             <div class="p-1 border-bottom bg-light">
                 <input type="text"
@@ -69,7 +70,7 @@
             </div>
 
             <!-- Options List -->
-            <div class="overflow-auto " style="max-height: 180px;">
+            <div class="overflow-auto" style="max-height: 180px;">
                 @{
                     var filteredItems = string.IsNullOrWhiteSpace(_searchQuery)
                         ? Items
@@ -88,8 +89,8 @@
                         var text = TextSelector(item);
                         bool isSelected = IsMultiple ? (Values != null && Values.Contains(val)) : EqualityComparer<TValue>.Default.Equals(val, Value);
 
-                        <div class=" rounded cursor-pointer option-item @(isSelected ? "bg-primary text-white" : "")"
-                             style="padding: 10px;cursor: pointer;"
+                        <div class="rounded cursor-pointer option-item @(isSelected ? "bg-primary text-white" : "")"
+                             style="padding: 10px; cursor: pointer;"
                              @onclick="() => SelectItem(val)">
                             @text
                         </div>
@@ -106,6 +107,7 @@
     [Parameter] public Func<TItem, TValue> ValueSelector { get; set; } = default!;
     [Parameter] public Func<TItem, string> TextSelector { get; set; } = default!;
     [Parameter] public bool IsMultiple { get; set; } = false;
+    [Parameter] public bool Disabled { get; set; } = false; // <-- Yeh parameter add kiya hai
 
     [Parameter] public TValue? Value { get; set; }
     [Parameter] public EventCallback<TValue?> ValueChanged { get; set; }
@@ -119,6 +121,9 @@
 
     private void ToggleDropdown()
     {
+        // Agar disabled hai to dropdown open nahi hoga
+        if (Disabled) return;
+
         _isOpen = !_isOpen;
         if (_isOpen) _searchQuery = "";
     }
@@ -131,6 +136,8 @@
 
     private async Task SelectItem(TValue val)
     {
+        if (Disabled) return; // Agar disabled hai to select na ho
+
         if (IsMultiple)
         {
             Values ??= new List<TValue>();
@@ -154,6 +161,8 @@
 
     private async Task RemoveItem(TValue val)
     {
+        if (Disabled) return;
+
         if (Values != null && Values.Contains(val))
         {
             Values.Remove(val);
@@ -172,6 +181,7 @@
         background-color: rgba(115, 103, 240, 0.12) !important;
         color: #7367f0 !important;
     }
+
     .option-item.bg-primary:hover {
         background-color: #7367f0 !important;
         color: #fff !important;

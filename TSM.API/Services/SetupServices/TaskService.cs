@@ -39,7 +39,9 @@ namespace TMS.API.Services.SetupServices
                 .Include(x => x.TagObj)
                 .Include(x => x.StatusObj)
                 .Include(x => x.ProjectObj)
-                .Include(x => x.UserObj);
+                .Include(x => x.UserTasks)
+                    .ThenInclude(x => x.UserObj);
+
         }
 
         public async Task<PaginationResponse<SetupTask>> GetAll(FilterModel filter)
@@ -66,8 +68,7 @@ namespace TMS.API.Services.SetupServices
                         (!string.IsNullOrEmpty(x.TaskTitle) && x.TaskTitle.ToLower().Contains(searchTerm)) ||
                         (!string.IsNullOrEmpty(x.TaskDesc) && x.TaskDesc.ToLower().Contains(searchTerm)) ||
                         (!string.IsNullOrEmpty(x.ProjectObj.ProjectName) && x.ProjectObj.ProjectName.ToLower().Contains(searchTerm)) ||
-                        (!string.IsNullOrEmpty(x.UserObj.UserName) && x.UserObj.UserName.ToLower().Contains(searchTerm)) ||
-                        (!string.IsNullOrEmpty(x.UserObj.FullName) && x.UserObj.FullName.ToLower().Contains(searchTerm)) ||
+                        
                         
                         (!string.IsNullOrEmpty(x.CreatedBy) && x.CreatedBy.ToLower().Contains(searchTerm))
                     );
@@ -124,17 +125,26 @@ namespace TMS.API.Services.SetupServices
         {
             try
             {
-                var found = await dbContext.SetupTasks.FirstOrDefaultAsync(x => x.TaskTitle.ToLower() == model.TaskTitle.ToLower() && x.ProjectId == model.ProjectId);
+                // Duplicate task check
+                var found = await dbContext.SetupTasks
+                    .FirstOrDefaultAsync(x =>
+                        x.TaskTitle.ToLower() == model.TaskTitle.ToLower() &&
+                        x.ProjectId == model.ProjectId);
+
                 if (found != null)
                 {
-                    _logger.LogWarning("Duplicate task title found during save: {TaskTitle}", model.TaskTitle);
+                    _logger.LogWarning(
+                        "Duplicate task title found during save: {TaskTitle}",
+                        model.TaskTitle);
+
                     return -1;
                 }
 
-                // 1. File Upload Logic (Unique Name + wwwroot/Image)
+                // -----------------------------------
+                // 1. File Upload
+                // -----------------------------------
                 if (file != null && file.Length > 0)
                 {
-                    // Aapka mukammal path yahan set kar diya gaya hai
                     string folderPath = @"D:\Tasker\TMS\wwwroot\Files";
 
                     if (!Directory.Exists(folderPath))
@@ -152,19 +162,42 @@ namespace TMS.API.Services.SetupServices
                     }
 
                     model.FileName = uniqueFileName;
+                    model.UserFileName = file.FileName;
                 }
+
+                var assignedUserIds = model.UserTasks?
+                    .Where(x => x.UserId.HasValue)
+                    .Select(x => x.UserId!.Value)
+                    .Distinct()
+                    .ToList()
+                    ?? new List<long>();
 
                 model.ProjectObj = null;
                 model.StatusObj = null;
                 model.TagObj = null;
-                model.UserObj = null;
+
+                model.UserTasks = new List<UserTask>();
+
                 model.CreatedOn = DateTime.Now;
-                model.CreatedBy = LoginUserName; // Base class property se automatic name
-                model.UserId = LoginUserId > 0 ? LoginUserId : model.UserId;
+                model.CreatedBy = LoginUserName;
 
                 dbContext.SetupTasks.Add(model);
 
-                // 2. User Activity Log Entry
+                await dbContext.SaveChangesAsync();
+
+                if (assignedUserIds.Any())
+                {
+                    var userTasks = assignedUserIds.Select(userId => new UserTask
+                    {
+                        UserId = userId,
+                        TaskId = model.Id,
+                        CreatedBy = LoginUserName,
+                        CreatedOn = DateTime.Now
+                    }).ToList();
+
+                    await dbContext.UserTasks.AddRangeAsync(userTasks);
+                }
+
                 dbContext.UserActivityLogs.Add(new UserActivityLog
                 {
                     UserId = LoginUserId,
@@ -175,13 +208,23 @@ namespace TMS.API.Services.SetupServices
                 });
 
                 await dbContext.SaveChangesAsync();
-                _logger.LogInformation("Task saved successfully with Title: {TaskTitle}", model.TaskTitle);
+
+                _logger.LogInformation(
+                    "Task saved successfully. TaskId: {TaskId}, Title: {TaskTitle}, AssignedUsers: {UserCount}",
+                    model.Id,
+                    model.TaskTitle,
+                    assignedUserIds.Count);
+
                 return 1;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while saving task: {TaskTitle}", model.TaskTitle);
-                throw new Exception(ex.Message);
+                _logger.LogError(
+                    ex,
+                    "Error occurred while saving task: {TaskTitle}",
+                    model.TaskTitle);
+
+                throw;
             }
         }
 
@@ -189,13 +232,19 @@ namespace TMS.API.Services.SetupServices
         {
             try
             {
-                var found = await dbContext.SetupTasks.FirstOrDefaultAsync(x => x.Id == model.Id);
+                // 1. Task find karein sath hi uske existing UserTasks bhi include kar lein
+                var found = await dbContext.SetupTasks
+                    .Include(x => x.UserTasks)
+                    .FirstOrDefaultAsync(x => x.Id == model.Id);
+
                 if (found == null)
                 {
                     return 0;
                 }
 
-                bool isDuplicate = await dbContext.SetupTasks.AnyAsync(x => x.TaskTitle == model.TaskTitle && x.Id != model.Id && x.ProjectId == model.ProjectId);
+                bool isDuplicate = await dbContext.SetupTasks
+                    .AnyAsync(x => x.TaskTitle.ToLower() == model.TaskTitle.ToLower() && x.Id != model.Id && x.ProjectId == model.ProjectId);
+
                 if (isDuplicate)
                 {
                     return -1; // Duplicate title
@@ -203,7 +252,7 @@ namespace TMS.API.Services.SetupServices
 
                 string folderPath = @"D:\Tasker\TMS\wwwroot\Files";
 
-                // File Update Logic (Purani delete & Nayi upload)
+                // 2. File Update Logic (Purani delete & Nayi upload)
                 if (file != null && file.Length > 0)
                 {
                     if (!Directory.Exists(folderPath))
@@ -211,7 +260,6 @@ namespace TMS.API.Services.SetupServices
                         Directory.CreateDirectory(folderPath);
                     }
 
-                    // Agar pehle se koi file mojood thi toh usay delete kar dein
                     if (!string.IsNullOrEmpty(found.FileName))
                     {
                         string oldFilePath = Path.Combine(folderPath, found.FileName);
@@ -239,7 +287,7 @@ namespace TMS.API.Services.SetupServices
                     {
                         File.Delete(oldFilePath);
                     }
-                    found.FileName = null; // Database mein bhi null kar dein
+                    found.FileName = null;
                 }
 
                 found.TaskTitle = model.TaskTitle;
@@ -247,11 +295,38 @@ namespace TMS.API.Services.SetupServices
                 found.DueDate = model.DueDate;
                 found.TagId = model.TagId;
                 found.StatusId = model.StatusId;
-                found.UserId = model.UserId;
+                found.TaskTime = model.TaskTime;
+                found.IsStart = model.IsStart;
                 found.UpdatedBy = LoginUserName;
                 found.UpdatedOn = DateTime.Now;
 
-                // User Activity Log Entry
+                if (model.UserTasks != null)
+                {
+                  
+                    var existingUserIds = found.UserTasks.Select(ut => ut.UserId).ToList();
+                    var incomingUserIds = model.UserTasks.Select(ut => ut.UserId).ToList();
+
+                    var usersToRemove = found.UserTasks.Where(ut => !incomingUserIds.Contains(ut.UserId)).ToList();
+                    foreach (var removeTask in usersToRemove)
+                    {
+                        dbContext.UserTasks.Remove(removeTask);
+                    }
+
+      
+                    foreach (var incomingTask in model.UserTasks)
+                    {
+                        if (!existingUserIds.Contains(incomingTask.UserId))
+                        {
+                            found.UserTasks.Add(new UserTask
+                            {
+                                TaskId = found.Id,
+                                UserId = incomingTask.UserId,
+                                CreatedBy = LoginUserName,
+                                CreatedOn = DateTime.Now
+                            });
+                        }
+                    }
+                }
                 dbContext.UserActivityLogs.Add(new UserActivityLog
                 {
                     UserId = LoginUserId,

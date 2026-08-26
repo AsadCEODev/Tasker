@@ -14,13 +14,6 @@ namespace TMS.API.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            
-            modelBuilder.Entity<SetupTask>()
-                .HasOne(t => t.UserObj)
-                .WithMany()
-                .HasForeignKey(t => t.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<SetupTask>()
                 .HasOne(t => t.StatusObj)
                 .WithMany()
@@ -38,6 +31,18 @@ namespace TMS.API.Data
                 .WithMany()
                 .HasForeignKey(t => t.ProjectId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserTask>()
+            .HasOne(ut => ut.TaskObj)
+            .WithMany(t => t.UserTasks)
+            .HasForeignKey(ut => ut.TaskId)
+            .OnDelete(DeleteBehavior.Cascade); 
+
+            modelBuilder.Entity<UserTask>()
+                .HasOne(ut => ut.UserObj)
+                .WithMany() 
+                .HasForeignKey(ut => ut.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
         public DbSet<SetupUser> SetupUsers { get; set; }
         public DbSet<SetupTask> SetupTasks { get; set; }
@@ -48,6 +53,7 @@ namespace TMS.API.Data
         public DbSet<SetupDesignation> SetupDesignations { get; set; }
         public DbSet<UserProject> UserProjects { get; set; }
         public DbSet<UserActivityLog> UserActivityLogs { get; set; }
+        public DbSet<UserTask> UserTasks { get; set; }
 
 
 

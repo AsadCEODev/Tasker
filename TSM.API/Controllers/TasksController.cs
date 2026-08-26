@@ -59,7 +59,7 @@ namespace TMS.API.Controllers
         }
 
         [HttpPost("Save")]
-        public async Task<ActionResult<int>> Save([FromForm] SetupTaskDto dto,IFormFile? file)
+        public async Task<ActionResult<int>> Save([FromForm] SetupTaskDto dto, [FromForm] IFormFile? file)
         {
             try
             {
@@ -82,13 +82,11 @@ namespace TMS.API.Controllers
         }
 
         [HttpPost("Update")]
-        public async Task<ActionResult<int>> Update([FromForm] SetupTaskDto dto, IFormFile? file)
+        public async Task<ActionResult<int>> Update([FromForm] SetupTaskDto dto, [FromForm] IFormFile? file)
         {
             try
             {
                 var converted = dto.Adapt<SetupTask>();
-
-                // Service mein file pass ki ja rahi hai
                 int result = await thisService.Update(converted, file);
 
                 if (result == 1)

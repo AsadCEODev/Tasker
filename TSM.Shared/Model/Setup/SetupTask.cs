@@ -33,13 +33,11 @@ namespace TMS.Shared.Model.Setup
         [ForeignKey(nameof(ProjectId))]
         public SetupProject? ProjectObj { get; set; }
 
-        public long UserId { get; set; }
-        [ForeignKey(nameof(UserId))]
-        public SetupUser? UserObj { get; set; }
-
         public int? Progress { get; set; } = 0;
         public string? FileName { get; set; } = string.Empty;
-
+        public string? UserFileName { get; set; } = string.Empty;
+        public bool IsStart { get; set; } = false;
+        public long? TaskTime { get; set; } = 0;
         public DateTime CreatedOn { get; set; } = DateTime.Now;
 
         [StringLength(30)]
@@ -49,7 +47,9 @@ namespace TMS.Shared.Model.Setup
 
         [StringLength(30)]
         public string? UpdatedBy { get; set; }
+        public ICollection<UserTask> UserTasks { get; set; } = new List<UserTask>();
     }
+
     public class SetupTaskDto
     {
         public long Id { get; set; }
@@ -74,10 +74,12 @@ namespace TMS.Shared.Model.Setup
         [Range(1, int.MaxValue, ErrorMessage = "Please select a Project.")]
         public int ProjectId { get; set; }
         public SetupProject? ProjectObj { get; set; } = new();
-        public long UserId { get; set; }
-        public SetupUser? UserObj { get; set; } = new();
         public int? Progress { get; set; } = 0;
         public string? FileName { get; set; } = string.Empty;
+        public string? UserFileName { get; set; } = string.Empty;
+        public bool IsStart { get; set; } = false;
+        public long? TaskTime { get; set; } = 0;
+ 
         public DateTime CreatedOn { get; set; } = DateTime.Now;
 
         public string CreatedBy { get; set; } = string.Empty;
@@ -85,6 +87,8 @@ namespace TMS.Shared.Model.Setup
         public DateTime? UpdatedOn { get; set; }
 
         public string? UpdatedBy { get; set; }
+
+        public List<UserTaskDto> UserTasks { get; set; } = new();
     }
 
 

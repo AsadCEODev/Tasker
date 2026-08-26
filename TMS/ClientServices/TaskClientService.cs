@@ -67,7 +67,7 @@ namespace TMS.ClientServices
         {
             try
             {
-                using var content = BuildMultipartContent(dto, file);
+                using var content = await BuildMultipartContent(dto, file);
                 var response = await httpClient.PostAsync($"{baseUrl}/Save", content);
 
                 if (response.IsSuccessStatusCode) return 1;
@@ -85,7 +85,7 @@ namespace TMS.ClientServices
         {
             try
             {
-                using var content = BuildMultipartContent(dto, file);
+                using var content = await BuildMultipartContent(dto, file);
                 var response = await httpClient.PostAsync($"{baseUrl}/Update", content);
 
                 if (response.IsSuccessStatusCode) return 1;
@@ -118,7 +118,7 @@ namespace TMS.ClientServices
             }
         }
 
-        private MultipartFormDataContent BuildMultipartContent(SetupTaskDto dto, IBrowserFile? file)
+        private  async Task<MultipartFormDataContent> BuildMultipartContent(SetupTaskDto dto, IBrowserFile? file)
         {
             var content = new MultipartFormDataContent();
 
@@ -127,8 +127,8 @@ namespace TMS.ClientServices
             content.Add(new StringContent(dto.TaskDesc ?? string.Empty), nameof(dto.TaskDesc));
             content.Add(new StringContent(dto.TagId.ToString()), nameof(dto.TagId));
             content.Add(new StringContent(dto.ProjectId.ToString()), nameof(dto.ProjectId));
-            content.Add(new StringContent(dto.UserId.ToString()), nameof(dto.UserId));
-
+            //content.Add(new StringContent(dto.UserId.ToString()), nameof(dto.UserId));
+       
             // ISO format for DateTime
             content.Add(new StringContent(dto.DueDate.ToString("o")), nameof(dto.DueDate));
 
@@ -146,12 +146,25 @@ namespace TMS.ClientServices
             {
                 content.Add(new StringContent(dto.FileName), nameof(dto.FileName));
             }
+            content.Add(new StringContent(dto.IsStart.ToString()),"IsStart");
+            content.Add(new StringContent(dto.TaskTime.ToString()), "TaskTime");
 
-            // File handling
+            if (dto.UserTasks != null && dto.UserTasks.Any())
+            {
+                int index = 0;
+                foreach (var userTask in dto.UserTasks)
+                {
+                    content.Add(new StringContent(userTask.UserId.ToString()), $"UserTasks[{index}].UserId");
+                    index++;
+                }
+            }
             if (file != null)
             {
-                var stream = file.OpenReadStream(1024 * 1024 * 10); // Max 10 MB
-                content.Add(new StreamContent(stream), "file", file.Name);
+                var memoryStream = new MemoryStream();
+                await file.OpenReadStream(1024 * 1024 * 10).CopyToAsync(memoryStream);
+                memoryStream.Position = 0; // Reset stream position back to start
+
+                content.Add(new StreamContent(memoryStream), "file", file.Name);
             }
 
             return content;
