@@ -40,6 +40,29 @@ namespace TMS.ClientServices
                  
         }
 
+
+        public async Task<PaginationResponse<SetupTaskDto>> GetTasksByUser(FilterDto filter)
+        {
+            try
+            {
+                var response = await httpClient.PostAsJsonAsync($"{baseUrl}/GetTasksByUser", filter);
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<PaginationResponse<SetupTaskDto>>(jsonString, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    return result;
+                }
+                return new PaginationResponse<SetupTaskDto>();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
+        }
         public async Task<SetupTaskDto> GetById(long Id)
         {
             try
@@ -129,7 +152,6 @@ namespace TMS.ClientServices
             content.Add(new StringContent(dto.ProjectId.ToString()), nameof(dto.ProjectId));
             //content.Add(new StringContent(dto.UserId.ToString()), nameof(dto.UserId));
        
-            // ISO format for DateTime
             content.Add(new StringContent(dto.DueDate.ToString("o")), nameof(dto.DueDate));
 
             if (dto.StatusId.HasValue)
@@ -196,15 +218,43 @@ namespace TMS.ClientServices
                 throw new Exception($"An error occurred while fetching task summary: {ex.Message}", ex);
             }
         }
+
+        public async Task<TaskSummaryDto> GetUserTodoTasksSummary(FilterDto filter)
+        {
+            try
+            {
+                var response = await httpClient.PostAsJsonAsync($"{baseUrl}/GetUserTodoTasksSummary", filter);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // ReadAsFromJsonAsync automatically JSON ko deserialize kar deta hai
+                    var result = await response.Content.ReadFromJsonAsync<TaskSummaryDto>(new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                    return result ?? new TaskSummaryDto();
+                }
+
+                return new TaskSummaryDto();
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception($"An error occurred while fetching task summary: {ex.Message}", ex);
+            }
+        }
     }
 
     public interface ITaskClientService
     {
         Task<PaginationResponse<SetupTaskDto>> GetAll(FilterDto filter);
+        Task<PaginationResponse<SetupTaskDto>> GetTasksByUser(FilterDto filter);
         Task<SetupTaskDto> GetById(long id);
         Task<int> Save(SetupTaskDto dto, IBrowserFile? file);
         Task<int> Update(SetupTaskDto dto, IBrowserFile? file);
         Task<bool> Delete(long id);
         Task<TaskSummaryDto> GetTasksSummary(FilterDto filter);
+        Task<TaskSummaryDto> GetUserTodoTasksSummary(FilterDto filter);
     }
 }

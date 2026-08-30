@@ -5,6 +5,8 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using TMS.Shared.Model.Setup;
+using TMS.Shared.Enum;
+using System.Text.Json.Serialization;
 
 namespace TMS.Shared.Model
 {
@@ -16,17 +18,18 @@ namespace TMS.Shared.Model
         [Key]
         public long Id { get; set; }
 
-        public long? UserId { get; set; }
+        public long UserId { get; set; }
         [ForeignKey(nameof(UserId))]
         public SetupUser? UserObj { get; set; }
 
-        public long? TaskId { get; set; }
+        public long TaskId { get; set; }
         [ForeignKey(nameof(TaskId))]
         public SetupTask? TaskObj { get; set; }
 
         [StringLength(250)]
         public string? Remarks { get; set; }
-
+        public int? UserProgress { get; set; } = 0;
+        public int? StatusId { get; set; } = (int)StatusEnum.Pending;
         [StringLength(250)]
         public string? UserFileName { get; set; }
 
@@ -45,11 +48,14 @@ namespace TMS.Shared.Model
     {
         public long Id { get; set; }
 
-        public long? UserId { get; set; }
-
-        public long? TaskId { get; set; }
+        public long UserId { get; set; }
+        public long TaskId { get; set; }
         public string? UserName { get; set; }
         public string? Remarks { get; set; }
+        [Range(0, 100, ErrorMessage = "Value must be between 0 and 100.")]
+        public int? UserProgress { get; set; } = 0;
+        public int? StatusId { get; set; } = (int)StatusEnum.Pending;
+
         public string? UserFileName { get; set; }
         public string? CreatedBy { get; set; }
 

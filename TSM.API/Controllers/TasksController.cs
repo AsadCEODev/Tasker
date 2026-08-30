@@ -39,6 +39,26 @@ namespace TMS.API.Controllers
             }
         }
 
+        [HttpPost("GetTasksByUser")]
+        public async Task<IActionResult> GetTasksByUser(FilterDto filter)
+        {
+            try
+            {
+                var converteddto = filter.Adapt<FilterModel>();
+                var lst = await thisService.GetTasksByUser(converteddto);
+                if (lst == null)
+                {
+                    return NotFound(lst);
+                }
+                var converted = lst.Adapt<PaginationResponse<SetupTaskDto>>();
+                return Ok(converted);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpGet("GetById")]
         public async Task<IActionResult> GetById(long id)
         {
@@ -59,7 +79,7 @@ namespace TMS.API.Controllers
         }
 
         [HttpPost("Save")]
-        public async Task<ActionResult<int>> Save([FromForm] SetupTaskDto dto, [FromForm] IFormFile? file)
+        public async Task<ActionResult<int>> Save([FromForm] SetupTaskDto dto, IFormFile? file)
         {
             try
             {
@@ -82,7 +102,7 @@ namespace TMS.API.Controllers
         }
 
         [HttpPost("Update")]
-        public async Task<ActionResult<int>> Update([FromForm] SetupTaskDto dto, [FromForm] IFormFile? file)
+        public async Task<ActionResult<int>> Update([FromForm] SetupTaskDto dto, IFormFile? file)
         {
             try
             {
@@ -128,6 +148,22 @@ namespace TMS.API.Controllers
             {
                 var converted = filter.Adapt<FilterModel>();
                 var result = await thisService.GetTasksSummary(converted);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
+        }
+
+        [HttpPost("GetUserTodoTasksSummary")]
+        public async Task<IActionResult> GetUserTodoTasksSummary(FilterDto filter)
+        {
+            try
+            {
+                var converted = filter.Adapt<FilterModel>();
+                var result = await thisService.GetUserTodoTasksSummary(converted);
                 return Ok(result);
             }
             catch (Exception ex)

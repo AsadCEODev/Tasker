@@ -42,5 +42,13 @@ namespace TSM.API.Data
                 return httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Name)?.Value ?? "Admin";
             }
         }
+        // 🔥 Yeh rahi nayi property DesignationTitle ke liye
+        protected string LoginUserDesignation
+        {
+            get
+            {
+                return httpContextAccessor.HttpContext?.User?.FindFirst("DesignationTitle")?.Value ?? string.Empty;
+            }
+        }
     }
 }

@@ -2,11 +2,16 @@
 @using TMS.ClientServices
 @using TMS.Shared.Pagination
 @using TMS.Shared.Model.Setup
+@using TMS.Shared.Model
 @using TMS.Shared.Enum
 @using TMS.Shared.Model.Filters
 @using TMS.Components
 @using TMS.ClientServices.TimerGlobalService
+@using TMS.ClientServices.StateUser
 
+
+@inject UserStateService UserState
+@inject IUserAssignedTaskClientService userTaskService;
 @inject ITaskClientService thisService;
 @inject ITagsClientService tagService;
 @inject IStatusClientService StatusService;
@@ -355,11 +360,12 @@
                                                                             Assigned
                                                                         </small>
 
-                                                                        <span class="fw-bolder font-small-2
-                                                                            text-dark d-block text-truncate">
-
-                                                                           @*  @(task.UserObj?.FullName ?? "UnAssigned") *@
-
+                                                                        <span class="fw-bolder font-small-2 text-dark d-block text-truncate">
+                                                                            @(task.UserTasks == null || !task.UserTasks.Any()
+                                                                                ? "UnAssigned"
+                                                                                : task.UserTasks.Count == 1
+                                                                                    ? task.UserTasks.First().UserName ?? "UnAssigned"
+                                                                                    : "Team")
                                                                         </span>
 
                                                                     </div>
@@ -506,7 +512,8 @@
     </div>
 </div>
 
-<!-- Right Sidebar Modal (Preserved) -->
+
+<!-- Dynamic Modal: Shows Edit version if Id != 0, otherwise shows Create version -->
 <div class="modal modal-slide-in sidebar-todo-modal fade @(isModalOpen ? "show d-block" : "")" id="new-task-modal">
     <div class="modal-dialog sidebar-lg">
         <div class="modal-content p-0">
@@ -524,129 +531,143 @@
                 </div>
 
                 <div class="modal-body flex-grow-1 pb-sm-0 pb-3">
-                    <!-- Task Timer & Action Button -->
-                    <div class="mb-1 d-flex align-items-center justify-content-between border rounded-3 p-2 bg-light">
 
-                        <!-- Task Timer Button -->
-                        <button type="button"
-                                class="btn @(isTaskStarted ? "btn-danger" : "btn-success")
-                            rounded-pill px-2 d-flex align-items-center gap-2 shadow-sm"
-                                @onclick="ToggleTaskTimer"
-                                title="@(isTaskStarted ? "Pause Task" : "Start Task")">
-
-                            @if (isTaskStarted)
-                            {
-                                <!-- Pause Icon -->
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                     width="18"
-                                     height="18"
-                                     viewBox="0 0 24 24"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     stroke-width="2.5"
-                                     stroke-linecap="round"
-                                     stroke-linejoin="round">
-                                    <rect x="6" y="4" width="4" height="16"></rect>
-                                    <rect x="14" y="4" width="4" height="16"></rect>
-                                </svg>
-
-                                <span class="fw-semibold">Pause</span>
-                            }
-                            else
-                            {
-                                <!-- Play Icon -->
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                     width="18"
-                                     height="18"
-                                     viewBox="0 0 24 24"
-                                     fill="currentColor"
-                                     stroke="currentColor"
-                                     stroke-width="1">
-                                    <polygon points="6 3 20 12 6 21 6 3"></polygon>
-                                </svg>
-
-                                <span class="fw-semibold">Start</span>
-                            }
-                        </button>
-                        <div>
-                            <span class="text-muted small d-block mb-1">
-                                Task Time Counter
-                            </span>
-
-                            <span class="fs-4 fw-bold font-monospace text-primary">
-                                @elapsedtime.ToString(@"hh\:mm\:ss")
-                            </span>
+                    @if (setupTaskDto.Id != 0)
+                    {
+                        <!-- Task Timer & Action Button -->
+                        <div class="mb-1 d-flex align-items-center justify-content-between border rounded-3 p-2 bg-light">
+                            <!-- Task Timer Button -->
+                            <button type="button"
+                                    class="btn @(isTaskStarted ? "btn-danger" : "btn-success") rounded-pill px-2 d-flex align-items-center gap-2 shadow-sm"
+                                    @onclick="ToggleTaskTimer"
+                                    title="@(isTaskStarted ? "Pause Task" : "Start Task")">
+                                @if (isTaskStarted)
+                                {
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="6" y="4" width="4" height="16"></rect>
+                                        <rect x="14" y="4" width="4" height="16"></rect>
+                                    </svg>
+                                    <span class="fw-semibold">Pause</span>
+                                }
+                                else
+                                {
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1">
+                                        <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                                    </svg>
+                                    <span class="fw-semibold">Start</span>
+                                }
+                            </button>
+                            <div>
+                                <span class="text-muted small d-block mb-1">Task Time Counter</span>
+                                <span class="fs-4 fw-bold font-monospace text-primary">
+                                    @elapsedtime.ToString(@"hh\:mm\:ss")
+                                </span>
+                            </div>
                         </div>
+                    }
 
-                    </div>
                     <div class="action-tags">
                         <div class="mb-1">
                             <label for="todoTitleAdd" class="form-label">Title</label>
-                            <InputText id="todoTitleAdd" class="new-todo-item-title form-control" @bind-Value="setupTaskDto.TaskTitle" placeholder="Title" disabled />
+                            <!-- Title is disabled during edit if you prefer, or keep standard -->
+                            <InputText id="todoTitleAdd" class="new-todo-item-title form-control" @bind-Value="setupTaskDto.TaskTitle" placeholder="Title" disabled="@(setupTaskDto.Id != 0)" />
                             <ValidationMessage For="@(() => setupTaskDto.TaskTitle)" class="text-danger small" />
                         </div>
 
-                        <div class="mb-1">
+                        <div class="@(setupTaskDto.Id != 0 ? "mb-1" : "mb-1")">
                             <label for="task-due-date" class="form-label">Due Date and Time</label>
-                            <InputDate Type="InputDateType.DateTimeLocal" id="task-due-date" class="form-control w-100" @bind-Value="setupTaskDto.DueDate" style="cursor: pointer;" disabled />
+                            <InputDate Type="InputDateType.DateTimeLocal" id="task-due-date" class="form-control w-100" @bind-Value="setupTaskDto.DueDate" style="cursor: pointer;" disabled="@(setupTaskDto.Id != 0)" />
                             <ValidationMessage For="@(() => setupTaskDto.DueDate)" class="text-danger small" />
                         </div>
+                        @if (setupTaskDto.Id == 0)
+                        {
+                            <div class="mb-1">
+                                <KrSelect2 TItem="SetupTagDto"
+                                           TValue="int"
+                                           Label="Task Priority"
+                                           Items="@tagList"
+                                           ValueSelector="@(u => u.Id)"
+                                           TextSelector="@(u => u.TagTitle)"
+                                           @bind-Value="setupTaskDto.TagId"
+                                           Disabled="@(setupTaskDto.Id != 0)" />
+                                <ValidationMessage For="@(() => setupTaskDto.TagId)" class="text-danger small mt-0" />
+                            </div>
 
+                            <div class="mb-1">
+                                <KrSelect2 TItem="SetupProjectDto"
+                                           TValue="int"
+                                           Label="Project"
+                                           Items="@projectsList"
+                                           ValueSelector="@(u => u.Id)"
+                                           TextSelector="@(u => u.ProjectName)"
+                                           @bind-Value="setupTaskDto.ProjectId"
+                                           Disabled="@(setupTaskDto.Id != 0)" />
+                                <ValidationMessage For="@(() => setupTaskDto.ProjectId)" class="text-danger small" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mb-1">
+                                <label class="form-label">Progress Percentage</label>
+                                <InputNumber class="new-todo-item-title form-control" @bind-Value="setupTaskDto.Progress" />
+                                <ValidationMessage For="@(() => setupTaskDto.Progress)" class="text-danger small" />
+                            </div>
+                        }
                         <div class="mb-1">
-                            <KrSelect2 TItem="SetupTagDto"
-                                       TValue="int"
-                                       Label="Task Priority"
-                                       Items="@tagList"
-                                       ValueSelector="@(u => u.Id)"
-                                       TextSelector="@(u => u.TagTitle)"
-                                       @bind-Value="setupTaskDto.TagId" 
-                                       Disabled="true" />
-                            <ValidationMessage For="@(() => setupTaskDto.TagId)" class="text-danger small mt-0" />
-                        </div>
-
-                        <div class="mb-1">
-                            <KrSelect2 TItem="SetupProjectDto"
-                                       TValue="int"
-                                       Label="Project"
-                                       Items="@projectsList"
-                                       ValueSelector="@(u => u.Id)"
-                                       TextSelector="@(u => u.ProjectName)"
-                                       @bind-Value="setupTaskDto.ProjectId" 
-                                       Disabled="true" />
-                            <ValidationMessage For="@(() => setupTaskDto.ProjectId)" class="text-danger small"  />
-                        </div>
-                       
-                        @* <div class="mb-1">
                             <KrSelect2 TItem="SetupUserDto"
                                        TValue="long"
                                        Label="User"
+                                       IsMultiple="true"
                                        Items="@usersList"
                                        ValueSelector="@(u => u.Id)"
                                        TextSelector="@(u => u.UserName)"
-                                       @bind-Value="setupTaskDto.UserId" />
-                        </div> *@
+                                       @bind-Values="selectedIds"
+                                       Disabled="@(setupTaskDto.Id != 0)" />
 
+                            @if (!string.IsNullOrEmpty(ErrorMessage))
+                            {
+                                <div class="text-danger">@ErrorMessage</div>
+                            }
+                        </div>
                         <div class="mb-1">
-                            <label for="task-file" class="form-label">Upload File</label>
 
+                           
                             @if (!string.IsNullOrEmpty(setupTaskDto.FileName))
                             {
+                                <label for="task-file" class="form-label">Admin's Attached File</label>
                                 <div class="d-flex align-items-center justify-content-between border rounded p-1 mb-1 bg-light">
                                     <span class="text-truncate text-primary" style="max-width: 180px;" title="@setupTaskDto.FileName">
                                         <i data-feather="file" class="me-50 font-medium-2"></i> @setupTaskDto.FileName
                                     </span>
                                     <div class="d-flex gap-1">
-                                        <!-- Direct Download Button -->
                                         <a href="/Files/@setupTaskDto.FileName" target="_blank" class="btn btn-sm btn-outline-primary" download>
                                             Download
                                         </a>
-                                        <!-- Remove File Button -->
-                                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="RemoveFile">
+                                    </div>
+                                </div>
+
+                            }
+
+                            @* <InputFile id="task-file" class="form-control" OnChange="HandleFileSelection" /> *@
+                        </div>
+                        <div class="mb-1">
+                            <label for="task-file" class="form-label">Attach File</label>
+
+                            @if (!string.IsNullOrEmpty(setupTaskDto.UserFileName))
+                            {
+                                <div class="d-flex align-items-center justify-content-between border rounded p-1 mb-1 bg-light">
+                                    <span class="text-truncate text-primary" style="max-width: 180px;" title="@setupTaskDto.UserFileName">
+                                        <i data-feather="file" class="me-50 font-medium-2"></i> @setupTaskDto.UserFileName
+                                    </span>
+                                    <div class="d-flex gap-1">
+                                        <a href="/Files/@setupTaskDto.UserFileName" target="_blank" class="btn btn-sm btn-outline-primary" download>
+                                            Download
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="RemoveUserFile">
                                             Remove
                                         </button>
                                     </div>
                                 </div>
-                                <small class="text-muted d-block mb-1">if you want to Replace File.Please Select new File and then Update</small>
                             }
 
                             <InputFile id="task-file" class="form-control" OnChange="HandleFileSelection" />
@@ -654,11 +675,19 @@
 
                         <div class="mb-1">
                             <label for="task-desc" class="form-label">Description</label>
-                            <InputTextArea id="task-desc" class="form-control" @bind-Value="setupTaskDto.TaskDesc" rows="4"></InputTextArea>
+                            <InputTextArea class="form-control" @bind-Value="setupTaskDto.TaskDesc" rows="4" disabled="@(setupTaskDto.Id != 0)" />
                             <ValidationMessage For="@(() => setupTaskDto.TaskDesc)" class="text-danger small" />
                         </div>
-                    </div>
 
+                    </div>
+                    @if (setupTaskDto.Id != 0)
+                    {
+                        <div class="mb-1">
+                            <label class="form-label">Remarks</label>
+                            <InputTextArea class="form-control" @bind-Value="setupTaskDto.Remarks" rows="4"></InputTextArea>
+                            <ValidationMessage For="@(() => setupTaskDto.Remarks)" class="text-danger small" />
+                        </div>
+                    }
                     <div class="my-1 d-flex align-items-center flex-wrap gap-1">
                         @if (setupTaskDto.Id == 0)
                         {
@@ -667,7 +696,7 @@
                         else
                         {
                             <button type="submit" class="btn btn-primary">Update</button>
-                            <button type="button" class="btn btn-outline-danger" @onclick="Delete">Delete</button>
+                            @* <button type="button" class="btn btn-outline-danger" @onclick="Delete">Delete</button> *@
                         }
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" @onclick="ClearModel">Close</button>
                     </div>
@@ -682,8 +711,13 @@
 <!-- END: Content-->
 @code {
     private PaginationResponse<SetupTaskDto> taskList = new();
+    private PaginationResponse<UserTaskDto> userTaskList = new();
     private FilterDto filters = new();
     private IBrowserFile? selectedFile;
+    private IBrowserFile? userSelectedFile;
+
+    private UserTaskDto userTaskDto = new();
+    private SetupTaskDto setupTaskDto = new();
 
     private List<SetupTagDto> tagList = new();
     private List<SetupUserDto> usersList = new();
@@ -694,19 +728,25 @@
     private int currentPage = 1;
     private int pageSize = 12;
 
-    private SetupTaskDto setupTaskDto = new();
     public bool isLoading { get; set; } = true;
     private ToastMessage toastRef { get; set; } = new();
     private bool isModalOpen = false;
     private Timer? debounceTimer;
     private int selectedTagId;
+    private List<long> selectedIds = new();
+    private string ErrorMessage = string.Empty;
 
     private CancellationTokenSource? _timerCts;
     private bool isTaskStarted => TimerService.ActiveTaskId == setupTaskDto.Id;
     private TimeSpan elapsedtime => TimerService.GetElapsedTime(setupTaskDto.Id, GetStoredTimeSpan());
+    private SetupUser? currentUser;
+}
 
+@code {
     protected override async Task OnInitializedAsync()
     {
+        currentUser = await UserState.GetCurrentUserAsync();
+
         filters.ToDate = DateTime.Today;
 
         filters.FromDate = DateTime.Today.AddDays(-7);
@@ -714,6 +754,7 @@
         await LoadLists();
         TimerService.OnTick += () => InvokeAsync(StateHasChanged);
         TimerService.OnStateChange += () => InvokeAsync(StateHasChanged);
+
     }
 
     private async Task LoadData()
@@ -725,7 +766,8 @@
             filters.PageNumber = currentPage;
             filters.PageSize = pageSize;
 
-            taskList = await thisService.GetAll(filters);
+            taskList = await thisService.GetTasksByUser(filters);
+            //userTaskList = await userTaskService.GetTasksByUser(filters);
 
             if (taskList != null && taskList.TotalPages > 0 && currentPage > taskList.TotalPages)
             {
@@ -735,7 +777,7 @@
                 taskList = await thisService.GetAll(filters);
             }
 
-            taskSummaryDto = await thisService.GetTasksSummary(filters);
+            taskSummaryDto = await thisService.GetUserTodoTasksSummary(filters);
         }
         catch (Exception ex)
         {
@@ -773,45 +815,45 @@
 
     private void HandleFileSelection(InputFileChangeEventArgs e)
     {
-        selectedFile = e.File;
+        userSelectedFile = e.File;
     }
 
-    private void RemoveFile()
+    private void RemoveUserFile()
     {
-        setupTaskDto.FileName = string.Empty;
-        selectedFile = null;
+        setupTaskDto.UserFileName = string.Empty;
+        userSelectedFile = null;
         StateHasChanged();
     }
     private async Task Save()
     {
-        int result;
+        try
+        {
+            userTaskDto.Remarks = setupTaskDto.Remarks;
+            userTaskDto.UserProgress = setupTaskDto.Progress;
+            userTaskDto.TaskId = setupTaskDto.Id;
 
-        if (setupTaskDto.Id == 0)
-        {
-            // Add New Task
-            result = await thisService.Save(setupTaskDto, selectedFile);
-        }
-        else
-        {
-            // Update Existing Task
-            result = await thisService.Update(setupTaskDto, selectedFile);
-        }
 
-        if (result == 1)
-        {
-            ClearModel();
-            await LoadData();
-            toastRef?.Show("Task Saved.", "success");
+
+            bool result = await userTaskService.UpdateUserTask(userTaskDto, userSelectedFile);
+
+            if (result)
+            {
+                ClearModel();
+                await LoadData();
+                toastRef?.Show("Task Updated.", "success");
+            }
+            else
+            {
+                toastRef?.Show("Operation Failed.", "error");
+            }
         }
-        else if (result == -1)
+        catch (Exception ex)
         {
 
-            toastRef?.Show("Task title already exists in this project.", "error");
+            throw new Exception(ex.Message);
         }
-        else
-        {
-            toastRef?.Show("Operation Failed.", "error");
-        }
+
+
     }
 
     private string GetPriorityHeader(string priority)
@@ -851,6 +893,7 @@
     {
         try
         {
+            var currentUserTask = task.UserTasks?.FirstOrDefault(ut => ut.UserId == currentUser.Id && ut.TaskId == task.Id);
 
             setupTaskDto = new SetupTaskDto
             {
@@ -860,18 +903,29 @@
                 DueDate = task.DueDate,
                 TagId = task.TagId,
                 ProjectId = task.ProjectId,
-                UserId = task.UserId,
                 FileName = task.FileName,
-                TaskTime = task.TaskTime,
-                IsStart = task.IsStart
+                UserFileName = currentUserTask?.UserFileName,
+                Remarks = currentUserTask?.Remarks,
+                StatusId = currentUserTask.StatusId,
+                Progress = currentUserTask.UserProgress,
+                IsStart = task.IsStart,
+                TaskTime = task.TaskTime
             };
-
+            if (task.UserTasks != null && task.UserTasks.Any())
+            {
+                selectedIds = task.UserTasks.Select(ut => ut.UserId).ToList();
+            }
+            else
+            {
+                selectedIds = new List<long>();
+            }
         }
         catch (Exception ex)
         {
             toastRef?.Show($"Error preparing task for edit: {ex.Message}", "error");
         }
     }
+
 
     private async Task Delete()
     {
@@ -914,8 +968,6 @@
         }, null, 300, Timeout.Infinite);
     }
 
-   
-
     private async Task FilterByTag(int tagId)
     {
         filters.TagId = tagId;
@@ -930,6 +982,7 @@
     private void ClearModel()
     {
         setupTaskDto = new SetupTaskDto();
+        selectedIds = null;
     }
 
     protected override void OnParametersSet()
@@ -959,17 +1012,26 @@
 
             setupTaskDto.IsStart = false;
             setupTaskDto.TaskTime = (long)totalSpentTime.TotalSeconds;
+
         }
         else
         {
             setupTaskDto.IsStart = true;
             TimerService.StartOrResumeTimer(setupTaskDto.Id, GetStoredTimeSpan());
         }
+        setupTaskDto.StatusId = (int)StatusEnum.Inprocess;
 
-        int result = await thisService.Update(setupTaskDto, selectedFile);
+        bool result = await userTaskService.ChangeStatus(setupTaskDto);
+        if( result)
+        {
+            StateHasChanged();
+            await LoadData();
+        }
+        else
+        {
+            toastRef.Show("Something wrong.", "error");
+        }
 
-        StateHasChanged();
-        await LoadData();
     }
 
     public void Dispose()

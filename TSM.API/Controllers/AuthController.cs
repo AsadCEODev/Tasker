@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Mapster;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TMS.Shared.Model.Auth;
+using TMS.Shared.Model.Setup;
 using TSM.API.Services;
 
 namespace TSM.API.Controllers
@@ -25,6 +27,24 @@ namespace TSM.API.Controllers
             return Ok(new { Token = token });
         }
 
+        [HttpGet("GetCurrentUserInfo")]
+        public async Task<IActionResult> GetCurrentUserInfo()
+        {
+            try
+            {
+                var result = await thisService.GetCurrentUserInfo();
+                if(result == null)
+                {
+                    return Unauthorized();
+                }
+                var converted = result.Adapt<SetupUserDto>();
+                return Ok(converted);
+            }
+            catch (Exception ex)
+            {
 
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

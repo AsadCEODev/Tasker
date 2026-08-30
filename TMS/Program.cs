@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using TMS;
 using TMS.AuthStateProvider;
 using TMS.ClientServices;
+using TMS.ClientServices.StateUser;
 using TMS.ClientServices.TimerGlobalService;
 using TSM.API.AuthDeligator;
 
@@ -20,7 +21,12 @@ builder.Services.AddScoped<ITagsClientService, TagsClientService>();
 builder.Services.AddScoped<IStatusClientService, StatusClientService>();
 builder.Services.AddScoped<ISetupProjectClientService, SetupProjectClientService>();
 builder.Services.AddScoped<IAssignProjectClientService, AssignProjectClientService>();
+builder.Services.AddScoped<IUserAssignedTaskClientService, UserAssignedTaskClientService>();
 builder.Services.AddSingleton<ActiveTaskTimerService>();
+builder.Services.AddScoped<UserStateService>();
+
+
+
 
 // Authentication aur Auth Handler
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();

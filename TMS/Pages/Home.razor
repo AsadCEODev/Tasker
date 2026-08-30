@@ -1,5 +1,9 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Authorization
+@using TMS.ClientServices.StateUser
+@using TMS.Shared.Model.Setup
+
+@inject UserStateService UserState
 
 @attribute [Authorize]
 <!-- BEGIN: Content-->
@@ -732,3 +736,15 @@
 </div>
 
 <!-- END: Content-->
+@code {
+    private SetupUser? currentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Yahan call karne se bar bar API call nahi hogi, memory se data milega
+        currentUser = await UserState.GetCurrentUserAsync();
+        var userId = currentUser?.Id;
+        var userName = currentUser?.FullName;
+        var designation = currentUser?.DesignationObj?.DesignationName;
+    }
+}

@@ -123,9 +123,7 @@
 
         try
         {
-            var response = await Http.PostAsJsonAsync(
-                "api/auth/login",
-                loginModel);
+            var response = await Http.PostAsJsonAsync("api/auth/login",loginModel);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -133,8 +131,7 @@
                 return;
             }
 
-            var result =
-                await response.Content.ReadFromJsonAsync<TokenResponseDto>();
+            var result = await response.Content.ReadFromJsonAsync<TokenResponseDto>();
 
             if (result == null || string.IsNullOrWhiteSpace(result.Token))
             {
@@ -149,6 +146,8 @@
             authProvider.NotifyUserLogin(result.Token);
 
             Navigation.NavigateTo("/", forceLoad: true);
+
+
         }
         catch
         {

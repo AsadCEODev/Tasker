@@ -16,19 +16,12 @@ namespace TMS.API.Services.SetupServices
 {
     public class TaskService : BaseClassService, ITaskService
     {
-        private readonly IWebHostEnvironment _environment;
         private readonly ILogger<TaskService> _logger;
 
         // Constructor mein base class aur local dependencies inject ki gayi hain
-        public TaskService(
-            ApplicationDbContext dbContext,
-            IConfiguration configuration,
-            IHttpContextAccessor httpContextAccessor,
-            IWebHostEnvironment environment,
-            ILogger<TaskService> logger)
-            : base(dbContext, configuration, httpContextAccessor)
+        public TaskService( ApplicationDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor,ILogger<TaskService> logger): base(dbContext, configuration, httpContextAccessor)
         {
-            _environment = environment;
+            
             _logger = logger;
         }
 
@@ -40,7 +33,9 @@ namespace TMS.API.Services.SetupServices
                 .Include(x => x.StatusObj)
                 .Include(x => x.ProjectObj)
                 .Include(x => x.UserTasks)
-                    .ThenInclude(x => x.UserObj);
+                    .ThenInclude(x => x.UserObj)
+                    .AsNoTracking()
+                .AsQueryable(); ;
 
         }
 
@@ -70,6 +65,71 @@ namespace TMS.API.Services.SetupServices
                         (!string.IsNullOrEmpty(x.ProjectObj.ProjectName) && x.ProjectObj.ProjectName.ToLower().Contains(searchTerm)) ||
                         
                         
+                        (!string.IsNullOrEmpty(x.CreatedBy) && x.CreatedBy.ToLower().Contains(searchTerm))
+                    );
+                }
+
+                if (filter.TagId != null && filter.TagId > 0)
+                {
+                    query = query.Where(x => x.TagId == filter.TagId);
+                }
+
+                if (filter.StatusId != null && filter.StatusId > 0)
+                {
+                    query = query.Where(x => x.StatusId == filter.StatusId);
+                }
+
+                var totalRecords = await query.CountAsync();
+
+                var items = await query.OrderByDescending(x => x.Id)
+                    .Skip((filter.PageNumber - 1) * filter.PageSize)
+                    .Take(filter.PageSize)
+                    .ToListAsync();
+
+                return new PaginationResponse<SetupTask>
+                {
+                    Data = items,
+                    PageIndex = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalCount = totalRecords
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving setup tasks.");
+                throw new Exception("An error occurred while retrieving setup tasks.", ex);
+            }
+        }
+
+        public async Task<PaginationResponse<SetupTask>> GetTasksByUser(FilterModel filter)
+        {
+            try
+            {
+                var query = GetBaseSetupTaskQuery();
+                if(LoginUserId > 0)
+                {
+                    query = query.Where(x =>x.UserTasks.Any(u => u.UserId == LoginUserId));
+                }
+                if (filter.FromDate.HasValue)
+                {
+                    query = query.Where(x => x.DueDate.Date >= filter.FromDate.Value.Date);
+                }
+
+                if (filter.ToDate.HasValue)
+                {
+                    query = query.Where(x => x.DueDate.Date <= filter.ToDate.Value.Date);
+                }
+
+                if (!string.IsNullOrWhiteSpace(filter.QueryString))
+                {
+                    var searchTerm = filter.QueryString.Trim().ToLower();
+
+                    query = query.Where(x =>
+                        (!string.IsNullOrEmpty(x.TaskTitle) && x.TaskTitle.ToLower().Contains(searchTerm)) ||
+                        (!string.IsNullOrEmpty(x.TaskDesc) && x.TaskDesc.ToLower().Contains(searchTerm)) ||
+                        (!string.IsNullOrEmpty(x.ProjectObj.ProjectName) && x.ProjectObj.ProjectName.ToLower().Contains(searchTerm)) ||
+
+
                         (!string.IsNullOrEmpty(x.CreatedBy) && x.CreatedBy.ToLower().Contains(searchTerm))
                     );
                 }
@@ -139,10 +199,6 @@ namespace TMS.API.Services.SetupServices
 
                     return -1;
                 }
-
-                // -----------------------------------
-                // 1. File Upload
-                // -----------------------------------
                 if (file != null && file.Length > 0)
                 {
                     string folderPath = @"D:\Tasker\TMS\wwwroot\Files";
@@ -166,8 +222,8 @@ namespace TMS.API.Services.SetupServices
                 }
 
                 var assignedUserIds = model.UserTasks?
-                    .Where(x => x.UserId.HasValue)
-                    .Select(x => x.UserId!.Value)
+                    .Where(x => x.UserId > 0)
+                    .Select(x => x.UserId)
                     .Distinct()
                     .ToList()
                     ?? new List<long>();
@@ -232,7 +288,6 @@ namespace TMS.API.Services.SetupServices
         {
             try
             {
-                // 1. Task find karein sath hi uske existing UserTasks bhi include kar lein
                 var found = await dbContext.SetupTasks
                     .Include(x => x.UserTasks)
                     .FirstOrDefaultAsync(x => x.Id == model.Id);
@@ -247,12 +302,10 @@ namespace TMS.API.Services.SetupServices
 
                 if (isDuplicate)
                 {
-                    return -1; // Duplicate title
+                    return -1; 
                 }
 
                 string folderPath = @"D:\Tasker\TMS\wwwroot\Files";
-
-                // 2. File Update Logic (Purani delete & Nayi upload)
                 if (file != null && file.Length > 0)
                 {
                     if (!Directory.Exists(folderPath))
@@ -415,15 +468,41 @@ namespace TMS.API.Services.SetupServices
                 throw new Exception(ex.Message);
             }
         }
+        public async Task<TaskSummary> GetUserTodoTasksSummary(FilterModel filter)
+        {
+            try
+            {
+                var parameters = new Dictionary<string, object>
+                {
+                    { "@UserId", LoginUserId },
+                    { "@DateFrom", filter.FromDate },
+                    { "@DateTo", filter.ToDate }
+                };
+                var summary = await dbContext.QueryFirstOrDefaultAsync<TaskSummary>("Proc_UserTodoTaskSummary_Data", parameters);
+                if (summary == null)
+                {
+                    return new();
+                }
+                return summary;
+
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 
     public interface ITaskService
     {
         Task<PaginationResponse<SetupTask>> GetAll(FilterModel filter);
+        Task<PaginationResponse<SetupTask>> GetTasksByUser(FilterModel filter);
         Task<SetupTask?> GetById(long id);
         Task<int> Save(SetupTask model, IFormFile? file);
         Task<int> Update(SetupTask model, IFormFile? file);
         Task<bool> Delete(long id);
         Task<TaskSummary> GetTasksSummary(FilterModel filter);
+        Task<TaskSummary> GetUserTodoTasksSummary(FilterModel filter);
     }
 }
