@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using TMS.API.Data;
 using TMS.API.Services.SetupServices;
 using TMS.Shared.Enum;
@@ -65,32 +66,45 @@ namespace TSM.API.Services
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<PaginationResponse<UserTask>> GetAllByUser(FilterModel filter)
+
+        public async Task<PaginationResponse<UserTaskData>> GetAllByUser(FilterModel filter)
         {
             try
             {
                 long targetUserId = filter.UserId ?? LoginUserId;
-                var query = BaseQuery().Where(x => x.UserId == targetUserId);
 
-                var totalCount = await query.CountAsync();
-                var lst = await query
-                   .Skip((filter.PageNumber - 1) * filter.PageSize)
-                   .Take(filter.PageSize)
-                   .ToListAsync();
+                var parameters = new Dictionary<string, object>
+                {
+                    { "@UserId", LoginUserId },
+                    { "@DateFrom", filter.FromDate },
+                    { "@DateTo", filter.ToDate }
+                };
+                var lst = await dbContext.QueryListAsync<UserTaskData>("Proc_UserTask_Data", parameters);
+                var tasklist = lst.ToList();
 
-                return new PaginationResponse<UserTask>
+                var totalCount = tasklist.Count;
+                
+                var pagedData = tasklist
+                    .Skip((filter.PageNumber - 1) * filter.PageSize)
+                    .Take(filter.PageSize)
+                    .ToList();
+
+                return new PaginationResponse<UserTaskData>
                 {
                     PageIndex = filter.PageNumber,
                     PageSize = filter.PageSize,
                     TotalCount = totalCount,
-                    Data = lst
+                    Data = pagedData 
                 };
+
+
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
         }
+
         public async Task<bool> Update(UserTask task, IFormFile? uploadedFile)
         {
             try
@@ -167,11 +181,13 @@ namespace TSM.API.Services
                 var mainTask = await dbContext.SetupTasks.FindAsync(taskId);
                 if (mainTask != null)
                 {
-                    mainTask.Progress = averageProgress;
+                    
 
-                    if (allUserTasks.All(x => x.UserProgress == 100))
+                    if (allUserTasks.All(x => x.UserProgress >= 100))
                     {
+
                         mainTask.StatusId = (int)StatusEnum.Completed;
+                        mainTask.Progress = 100;
                     }
                     else
                     {
@@ -182,16 +198,27 @@ namespace TSM.API.Services
                 }
             }
         }
-        public async Task<bool> ChangeStatus(SetupTask model)
+        public async Task<bool> ChangeStatus(UserTask model)
         {
             try
             {
-                var found = await dbContext.SetupTasks.FirstOrDefaultAsync(x => x.Id == model.Id);
+                var found = await dbContext.UserTasks.FirstOrDefaultAsync(x => x.TaskId == model.TaskId && x.UserId == LoginUserId); 
+
                 if (found == null) return false;
 
-                found.IsStart = true;
+                if (model.IsStart)
+                {
+                    var runningTask = await dbContext.UserTasks.Where(x => x.UserId == LoginUserId && x.IsStart == true && x.TaskId != model.Id).FirstOrDefaultAsync();
+
+                    if (runningTask != null)
+                    {
+                        return false; 
+                    }
+                }
+
                 found.StatusId = (int)StatusEnum.Inprocess;
                 found.TaskTime = model.TaskTime;
+                found.IsStart = model.IsStart;
 
                 await dbContext.SaveChangesAsync();
                 return true;
@@ -200,7 +227,6 @@ namespace TSM.API.Services
             {
                 throw new Exception(ex.Message);
             }
-
         }
 
     }
@@ -209,9 +235,9 @@ namespace TSM.API.Services
     {
         Task<PaginationResponse<UserTask>> GetAll(FilterModel filter);
         Task<UserTask> GetById(long id);
-        Task<PaginationResponse<UserTask>> GetAllByUser(FilterModel filter);
+        Task<PaginationResponse<UserTaskData>> GetAllByUser(FilterModel filter);
         Task<bool> Update(UserTask task, IFormFile? uploadedFile);
-        Task<bool> ChangeStatus(SetupTask model);
+        Task<bool> ChangeStatus(UserTask model);
     }
 
 }

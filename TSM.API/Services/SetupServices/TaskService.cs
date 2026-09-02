@@ -348,8 +348,8 @@ namespace TMS.API.Services.SetupServices
                 found.DueDate = model.DueDate;
                 found.TagId = model.TagId;
                 found.StatusId = model.StatusId;
-                found.TaskTime = model.TaskTime;
-                found.IsStart = model.IsStart;
+                //found.TaskTime = model.TaskTime;
+                //found.IsStart = model.IsStart;
                 found.UpdatedBy = LoginUserName;
                 found.UpdatedOn = DateTime.Now;
 
@@ -390,6 +390,7 @@ namespace TMS.API.Services.SetupServices
                 });
 
                 await dbContext.SaveChangesAsync();
+                await CalculateAverage(model.Id);
                 _logger.LogInformation("Task updated successfully with ID: {Id}", model.Id);
                 return 1;
             }
@@ -400,6 +401,36 @@ namespace TMS.API.Services.SetupServices
             }
         }
 
+        private async Task CalculateAverage(long taskId)
+        {
+            try
+            {
+                var found = await dbContext.SetupTasks
+                    .Include(x => x.UserTasks)
+                    .FirstOrDefaultAsync(x => x.Id == taskId);
+
+                if (found == null)
+                {
+                    return;
+                }
+
+                if (found.UserTasks != null && found.UserTasks.Any())
+                {
+                    found.Progress = (int)found.UserTasks.Average(x => x.UserProgress);
+                }
+                else
+                {
+                    found.Progress = 0;
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while calculating average progress for task ID: {Id}", taskId);
+                throw new Exception(ex.Message);
+            }
+        }
         public async Task<bool> Delete(long id)
         {
             try

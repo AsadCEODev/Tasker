@@ -31,8 +31,8 @@ namespace TSM.API.Controllers
                 {
                     return BadRequest(new());
                 }
-                var convertedData = response.Data.Adapt<List<UserTaskDto>>();
-                var pagedResult = new PaginationResponse<UserTaskDto>
+                var convertedData = response.Data.Adapt<List<UserTaskDataDto>>();
+                var pagedResult = new PaginationResponse<UserTaskDataDto>
                 {
                     PageIndex = response.PageIndex,
                     PageSize = response.PageSize,
@@ -65,11 +65,11 @@ namespace TSM.API.Controllers
         }
 
         [HttpPost("ChangeStatus")]
-        public async Task<IActionResult> ChangeStatus(SetupTaskDto dto)
+        public async Task<IActionResult> ChangeStatus(UserTaskDto dto)
         {
             try
             {
-                var convertedData = dto.Adapt<SetupTask>();
+                var convertedData = dto.Adapt<UserTask>();
                 var result = await thisService.ChangeStatus(convertedData);
                 if (result)
                 {

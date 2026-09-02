@@ -33,8 +33,6 @@ namespace TMS.Shared.Model.Setup
         [NotMapped]
         public string? Remarks { get; set; } = string.Empty;
         
-        public bool IsStart { get; set; } = false;
-        public long? TaskTime { get; set; } = 0;
         public DateTime CreatedOn { get; set; } = DateTime.Now;
         [StringLength(30)]
         public string CreatedBy { get; set; } = string.Empty;
@@ -63,14 +61,13 @@ namespace TMS.Shared.Model.Setup
         [Range(1, int.MaxValue, ErrorMessage = "Please select a Project.")]
         public int ProjectId { get; set; }
         public SetupProject? ProjectObj { get; set; } = new();
+        [Range(0, 100, ErrorMessage = "Please enter value between 0 to 100.")]
         public int? Progress { get; set; } = 0;
         public string? FileName { get; set; } = string.Empty;
         [NotMapped]
         public string? UserFileName { get; set; } = string.Empty;
         [NotMapped]
         public string? Remarks { get; set; } = string.Empty;
-        public bool IsStart { get; set; } = false;
-        public long? TaskTime { get; set; } = 0;
         public DateTime CreatedOn { get; set; } = DateTime.Now;
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime? UpdatedOn { get; set; }

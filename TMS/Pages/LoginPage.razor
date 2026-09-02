@@ -124,6 +124,7 @@
         try
         {
             var response = await Http.PostAsJsonAsync("api/auth/login",loginModel);
+            var checkAuth = await Http.GetAsync("api/auth/GetCurrentUserInfo");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -145,8 +146,11 @@
 
             authProvider.NotifyUserLogin(result.Token);
 
-            Navigation.NavigateTo("/", forceLoad: true);
-
+            if (!checkAuth.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/", forceLoad: true);
+                
+            }
 
         }
         catch

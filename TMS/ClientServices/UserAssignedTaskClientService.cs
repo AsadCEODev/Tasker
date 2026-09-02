@@ -16,7 +16,7 @@ namespace TMS.ClientServices
             httpClient = _httpClient;
         }
 
-        public async Task<PaginationResponse<UserTaskDto>> GetTasksByUser(FilterDto filter)
+        public async Task<PaginationResponse<UserTaskDataDto>> GetTasksByUser(FilterDto filter)
         {
             try
             {
@@ -25,12 +25,12 @@ namespace TMS.ClientServices
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = await response.Content.ReadFromJsonAsync<PaginationResponse<UserTaskDto>>();
+                    var result = await response.Content.ReadFromJsonAsync<PaginationResponse<UserTaskDataDto>>();
 
-                    return result ?? new PaginationResponse<UserTaskDto>();
+                    return result ?? new PaginationResponse<UserTaskDataDto>();
                 }
 
-                return new PaginationResponse<UserTaskDto>();
+                return new PaginationResponse<UserTaskDataDto>();
             }
             catch (Exception ex)
             {
@@ -72,7 +72,7 @@ namespace TMS.ClientServices
             }
         }
 
-        public async Task<bool> ChangeStatus(SetupTaskDto dto)
+        public async Task<bool> ChangeStatus(UserTaskDto dto)
         {
             try
             {
@@ -93,8 +93,8 @@ namespace TMS.ClientServices
 
     public interface IUserAssignedTaskClientService
     {
-        Task<PaginationResponse<UserTaskDto>> GetTasksByUser(FilterDto filter);
+        Task<PaginationResponse<UserTaskDataDto>> GetTasksByUser(FilterDto filter);
         Task<bool> UpdateUserTask(UserTaskDto dto, IBrowserFile? file);
-        Task<bool> ChangeStatus(SetupTaskDto dto);
+        Task<bool> ChangeStatus(UserTaskDto dto);
     }
 }

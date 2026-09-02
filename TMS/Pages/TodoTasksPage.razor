@@ -184,9 +184,9 @@
                             <div class="todo-cards-scroll-container flex-grow-1 overflow-auto p-1 bg-light">
                                 <div class="row g-2">
 
-                                    @if (taskList?.Data != null && taskList.Data.Any())
+                                    @if (userTaskList?.Data != null && userTaskList.Data.Any())
                                     {
-                                        @foreach (var task in taskList.Data)
+                                        @foreach (var task in userTaskList.Data)
                                         {
                                             <div class="col-xl-4 col-lg-6 col-md-6 col-12">
 
@@ -207,8 +207,8 @@
 
                                                                 <div class="d-flex align-items-center gap-50 mb-25">
 
-                                                                    <span class="badge rounded-pill @GetPriorityHeader(task.TagObj?.TagTitle)">
-                                                                        @(task.TagObj?.TagTitle ?? "Low")
+                                                                    <span class="badge rounded-pill @GetPriorityHeader(task.TagTitle)">
+                                                                        @(task.TagTitle ?? "Low")
                                                                     </span>
 
                                                                     <small class="text-muted">
@@ -235,10 +235,10 @@
                                                                 <div class="position-relative">
                                                                     <svg width="52" height="52" viewBox="0 0 80 80" style="transform:rotate(-90deg);">
                                                                         <circle cx="40" cy="40" r="34" fill="none" stroke="#eeeeee" stroke-width="7"></circle>
-                                                                        <circle cx="40" cy="40" r="34" fill="none" stroke="#7367f0" stroke-width="7" stroke-linecap="round" stroke-dasharray="213.6" style="stroke-dashoffset:@GetProgressOffset(task.Progress ?? 0);"></circle>
+                                                                        <circle cx="40" cy="40" r="34" fill="none" stroke="#7367f0" stroke-width="7" stroke-linecap="round" stroke-dasharray="213.6" style="stroke-dashoffset:@GetProgressOffset(task.UserProgress ?? 0);"></circle>
                                                                     </svg>
                                                                     <span class="position-absolute top-50 start-50 translate-middle fw-bolder" style="font-size:10px;">
-                                                                        @task.Progress%
+                                                                        @task.UserProgress%
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -255,14 +255,14 @@
                                                                     Status
                                                                 </small>
 
-                                                                <span class="badge rounded-pill @GetStatusBadge(task.StatusObj?.StatusTitle ?? "Pending")">
-                                                                    @(task.StatusObj?.StatusTitle ?? "Pending")
+                                                                <span class="badge rounded-pill @GetStatusBadge(task.StatusTitle ?? "Pending")">
+                                                                    @(task.StatusTitle ?? "Pending")
                                                                 </span>
 
                                                             </div>
 
                                                             <span class="fw-bolder font-small-2 text-dark">
-                                                                @task.Progress%
+                                                                @task.UserProgress%
                                                             </span>
 
                                                         </div>
@@ -273,7 +273,7 @@
                                                              style="height:4px;">
 
                                                             <div class="progress-bar rounded-pill"
-                                                                 style="width:@task.Progress%">
+                                                                 style="width:@task.UserProgress%">
                                                             </div>
 
                                                         </div>
@@ -325,7 +325,7 @@
                                                                         <span class="fw-bolder font-small-2
                                                                             text-dark d-block text-truncate">
 
-                                                                            @(task.ProjectObj?.ProjectName ?? "UnAssigned")
+                                                                            @(task.ProjectName ?? "UnAssigned")
 
                                                                         </span>
 
@@ -361,10 +361,10 @@
                                                                         </small>
 
                                                                         <span class="fw-bolder font-small-2 text-dark d-block text-truncate">
-                                                                            @(task.UserTasks == null || !task.UserTasks.Any()
+                                                                            @(task.AssignedUsersCount == 0
                                                                                 ? "UnAssigned"
-                                                                                : task.UserTasks.Count == 1
-                                                                                    ? task.UserTasks.First().UserName ?? "UnAssigned"
+                                                                                : task.AssignedUsersCount == 1
+                                                                                    ? task.FullName ?? "UnAssigned"
                                                                                     : "Team")
                                                                         </span>
 
@@ -613,7 +613,7 @@
                                 <ValidationMessage For="@(() => setupTaskDto.Progress)" class="text-danger small" />
                             </div>
                         }
-                        <div class="mb-1">
+                        @* <div class="mb-1">
                             <KrSelect2 TItem="SetupUserDto"
                                        TValue="long"
                                        Label="User"
@@ -628,7 +628,7 @@
                             {
                                 <div class="text-danger">@ErrorMessage</div>
                             }
-                        </div>
+                        </div> *@
                         <div class="mb-1">
 
                            
@@ -711,7 +711,7 @@
 <!-- END: Content-->
 @code {
     private PaginationResponse<SetupTaskDto> taskList = new();
-    private PaginationResponse<UserTaskDto> userTaskList = new();
+    private PaginationResponse<UserTaskDataDto> userTaskList = new();
     private FilterDto filters = new();
     private IBrowserFile? selectedFile;
     private IBrowserFile? userSelectedFile;
@@ -765,16 +765,13 @@
 
             filters.PageNumber = currentPage;
             filters.PageSize = pageSize;
+            userTaskList = await userTaskService.GetTasksByUser(filters);
 
-            taskList = await thisService.GetTasksByUser(filters);
-            //userTaskList = await userTaskService.GetTasksByUser(filters);
-
-            if (taskList != null && taskList.TotalPages > 0 && currentPage > taskList.TotalPages)
+            if (userTaskList != null && userTaskList.TotalPages > 0 && currentPage > userTaskList.TotalPages)
             {
                 currentPage = 1;
                 filters.PageNumber = currentPage;
-
-                taskList = await thisService.GetAll(filters);
+                userTaskList = await userTaskService.GetTasksByUser(filters);
             }
 
             taskSummaryDto = await thisService.GetUserTodoTasksSummary(filters);
@@ -889,36 +886,33 @@
         return circumference - (circumference * progress / 100);
     }
 
-    private void Edit(SetupTaskDto task)
+    private void Edit(UserTaskDataDto task)
     {
         try
         {
-            var currentUserTask = task.UserTasks?.FirstOrDefault(ut => ut.UserId == currentUser.Id && ut.TaskId == task.Id);
 
             setupTaskDto = new SetupTaskDto
             {
-                Id = task.Id,
+                Id = task.TaskId,
                 TaskTitle = task.TaskTitle,
                 TaskDesc = task.TaskDesc,
                 DueDate = task.DueDate,
-                TagId = task.TagId,
-                ProjectId = task.ProjectId,
                 FileName = task.FileName,
-                UserFileName = currentUserTask?.UserFileName,
-                Remarks = currentUserTask?.Remarks,
-                StatusId = currentUserTask.StatusId,
-                Progress = currentUserTask.UserProgress,
-                IsStart = task.IsStart,
-                TaskTime = task.TaskTime
+                UserFileName = task?.UserFileName,
+                Remarks = task?.Remarks,
+                UserTasks = new List<UserTaskDto>
+                {
+                    new UserTaskDto
+                    {
+                        UserId = task.UserId,
+                        TaskId = task.TaskId,
+                        IsStart = task.IsStart,
+                        TaskTime = task.TaskTime,
+                        UserProgress = task?.UserProgress
+                    }
+                }
             };
-            if (task.UserTasks != null && task.UserTasks.Any())
-            {
-                selectedIds = task.UserTasks.Select(ut => ut.UserId).ToList();
-            }
-            else
-            {
-                selectedIds = new List<long>();
-            }
+
         }
         catch (Exception ex)
         {
@@ -985,53 +979,102 @@
         selectedIds = null;
     }
 
-    protected override void OnParametersSet()
-    {
-        base.OnParametersSet();
-
-        if (setupTaskDto.IsStart && TimerService.ActiveTaskId != setupTaskDto.Id)
-        {
-            TimerService.StartOrResumeTimer(setupTaskDto.Id, GetStoredTimeSpan());
-        }
-    }
-
     private TimeSpan GetStoredTimeSpan()
     {
-        if (setupTaskDto.TaskTime.HasValue)
+        var currentUserTask = setupTaskDto?.UserTasks?.FirstOrDefault();
+        if (currentUserTask != null && currentUserTask.TaskTime.HasValue)
         {
-            return TimeSpan.FromSeconds(setupTaskDto.TaskTime.Value);
+            return TimeSpan.FromSeconds(currentUserTask.TaskTime.Value);
         }
         return TimeSpan.Zero;
     }
 
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (setupTaskDto?.UserTasks != null && setupTaskDto.UserTasks.Any(x => x.IsStart) && TimerService.ActiveTaskId != setupTaskDto.Id)
+        {
+            TimerService.StartOrResumeTimer(setupTaskDto.Id, GetStoredTimeSpan());
+        }
+    }
+
+    // 3. Parameter-less ToggleTaskTimer method (jo UI button ke sath match karega)
     private async Task ToggleTaskTimer()
     {
-        if (isTaskStarted)
+        var currentUserTask = setupTaskDto?.UserTasks?.FirstOrDefault();
+        if (currentUserTask == null) return;
+
+        bool attemptingToStart = !currentUserTask.IsStart;
+
+        if (attemptingToStart)
         {
-            TimeSpan totalSpentTime = TimerService.StopTimer();
+            var runningTask = userTaskList.Data.FirstOrDefault(x => x.IsStart && x.TaskId != setupTaskDto.Id);
 
-            setupTaskDto.IsStart = false;
-            setupTaskDto.TaskTime = (long)totalSpentTime.TotalSeconds;
+            if (runningTask != null)
+            {
+                toastRef?.Show(
+                    $"Pehle se task running hai: \"{runningTask.TaskTitle}\". " +
+                    "Naya task start karne se pehle is task ko stop karein.",
+                    "error");
 
+                return;
+            }
+
+            currentUserTask.IsStart = true;
+            TimerService.StartOrResumeTimer(setupTaskDto.Id, GetStoredTimeSpan());
         }
         else
         {
-            setupTaskDto.IsStart = true;
-            TimerService.StartOrResumeTimer(setupTaskDto.Id, GetStoredTimeSpan());
-        }
-        setupTaskDto.StatusId = (int)StatusEnum.Inprocess;
+            TimeSpan totalSpentTime = TimerService.StopTimer();
 
-        bool result = await userTaskService.ChangeStatus(setupTaskDto);
-        if( result)
+            currentUserTask.IsStart = false;
+            currentUserTask.TaskTime = (long)totalSpentTime.TotalSeconds;
+        }
+
+        // Direct UserTaskDto create karein values ke sath
+        var userTaskDto = new UserTaskDto
         {
-            StateHasChanged();
+            UserId = currentUserTask.UserId,
+            TaskId = currentUserTask.TaskId,
+            IsStart = currentUserTask.IsStart,
+            TaskTime = currentUserTask.TaskTime,
+            UserProgress = currentUserTask.UserProgress
+        };
+
+        StateHasChanged();
+
+        // ChangeStatus service ko UserTaskDto pass ho raha hai
+        bool result = await userTaskService.ChangeStatus(userTaskDto);
+
+        if (result)
+        {
             await LoadData();
         }
         else
         {
-            toastRef.Show("Something wrong.", "error");
-        }
+            // Rollback agar API fail ho jaye
+            if (attemptingToStart)
+            {
+                TimerService.StopTimer();
+                currentUserTask.IsStart = false;
+            }
+            else
+            {
+                TimerService.StartOrResumeTimer(setupTaskDto.Id, GetStoredTimeSpan());
+                currentUserTask.IsStart = true;
+            }
 
+            // Rollback ke baad userTaskDto ki values ko bhi sync karein
+            userTaskDto.IsStart = currentUserTask.IsStart;
+            userTaskDto.TaskTime = currentUserTask.TaskTime;
+
+            StateHasChanged();
+
+            toastRef?.Show(
+                "Pehle chalne wale task ko stop karein ya kuch ghalat ho gaya hai.",
+                "error");
+        }
     }
 
     public void Dispose()

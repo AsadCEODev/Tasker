@@ -168,8 +168,8 @@ namespace TMS.ClientServices
             {
                 content.Add(new StringContent(dto.FileName), nameof(dto.FileName));
             }
-            content.Add(new StringContent(dto.IsStart.ToString()),"IsStart");
-            content.Add(new StringContent(dto.TaskTime.ToString()), "TaskTime");
+            //content.Add(new StringContent(dto.IsStart.ToString()),"IsStart");
+            //content.Add(new StringContent(dto.TaskTime.ToString()), "TaskTime");
 
             if (dto.UserTasks != null && dto.UserTasks.Any())
             {
