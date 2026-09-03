@@ -192,6 +192,7 @@ namespace TSM.API.Services
                     else
                     {
                         mainTask.StatusId = (int)StatusEnum.Inprocess;
+                        mainTask.Progress = averageProgress;
                     }
 
                     await dbContext.SaveChangesAsync();
@@ -208,7 +209,7 @@ namespace TSM.API.Services
 
                 if (model.IsStart)
                 {
-                    var runningTask = await dbContext.UserTasks.Where(x => x.UserId == LoginUserId && x.IsStart == true && x.TaskId != model.Id).FirstOrDefaultAsync();
+                    var runningTask = await dbContext.UserTasks.Where(x => x.UserId == LoginUserId && x.IsStart == true && x.TaskId != model.TaskId).FirstOrDefaultAsync();
 
                     if (runningTask != null)
                     {

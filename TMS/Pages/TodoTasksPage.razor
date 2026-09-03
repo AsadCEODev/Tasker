@@ -825,6 +825,13 @@
     {
         try
         {
+
+            
+            if (isTaskStarted)
+            {
+                toastRef?.Show("This Task is Running. Please Stop it First.", "error");
+                return;
+            }
             userTaskDto.Remarks = setupTaskDto.Remarks;
             userTaskDto.UserProgress = setupTaskDto.Progress;
             userTaskDto.TaskId = setupTaskDto.Id;
@@ -900,6 +907,9 @@
                 FileName = task.FileName,
                 UserFileName = task?.UserFileName,
                 Remarks = task?.Remarks,
+                ProjectId = task.ProjectId,
+                TagId = task.TagId,
+                Progress = task.UserProgress,
                 UserTasks = new List<UserTaskDto>
                 {
                     new UserTaskDto
@@ -999,7 +1009,6 @@
         }
     }
 
-    // 3. Parameter-less ToggleTaskTimer method (jo UI button ke sath match karega)
     private async Task ToggleTaskTimer()
     {
         var currentUserTask = setupTaskDto?.UserTasks?.FirstOrDefault();
@@ -1013,11 +1022,7 @@
 
             if (runningTask != null)
             {
-                toastRef?.Show(
-                    $"Pehle se task running hai: \"{runningTask.TaskTitle}\". " +
-                    "Naya task start karne se pehle is task ko stop karein.",
-                    "error");
-
+                toastRef?.Show($"This Task is Running \"{runningTask.TaskTitle}\". " + "Please Stop this Task First.","error");
                 return;
             }
 
@@ -1032,7 +1037,6 @@
             currentUserTask.TaskTime = (long)totalSpentTime.TotalSeconds;
         }
 
-        // Direct UserTaskDto create karein values ke sath
         var userTaskDto = new UserTaskDto
         {
             UserId = currentUserTask.UserId,
@@ -1044,7 +1048,6 @@
 
         StateHasChanged();
 
-        // ChangeStatus service ko UserTaskDto pass ho raha hai
         bool result = await userTaskService.ChangeStatus(userTaskDto);
 
         if (result)
@@ -1053,7 +1056,6 @@
         }
         else
         {
-            // Rollback agar API fail ho jaye
             if (attemptingToStart)
             {
                 TimerService.StopTimer();
@@ -1065,7 +1067,6 @@
                 currentUserTask.IsStart = true;
             }
 
-            // Rollback ke baad userTaskDto ki values ko bhi sync karein
             userTaskDto.IsStart = currentUserTask.IsStart;
             userTaskDto.TaskTime = currentUserTask.TaskTime;
 

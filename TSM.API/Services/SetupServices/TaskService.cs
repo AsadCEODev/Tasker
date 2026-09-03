@@ -17,8 +17,6 @@ namespace TMS.API.Services.SetupServices
     public class TaskService : BaseClassService, ITaskService
     {
         private readonly ILogger<TaskService> _logger;
-
-        // Constructor mein base class aur local dependencies inject ki gayi hain
         public TaskService( ApplicationDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor,ILogger<TaskService> logger): base(dbContext, configuration, httpContextAccessor)
         {
             
