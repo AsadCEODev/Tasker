@@ -22,6 +22,8 @@ builder.Services.AddScoped<IStatusClientService, StatusClientService>();
 builder.Services.AddScoped<ISetupProjectClientService, SetupProjectClientService>();
 builder.Services.AddScoped<IAssignProjectClientService, AssignProjectClientService>();
 builder.Services.AddScoped<IUserAssignedTaskClientService, UserAssignedTaskClientService>();
+builder.Services.AddScoped<IDepartmentsClientService, DepartmentsClientService>();
+builder.Services.AddScoped<IDesignationsClientService, DesignationsClientService>();
 builder.Services.AddSingleton<ActiveTaskTimerService>();
 builder.Services.AddScoped<UserStateService>();
 

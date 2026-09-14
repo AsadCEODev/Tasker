@@ -95,6 +95,25 @@ namespace TMS.ClientServices
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<vwvwAssignedProjectSummryDto> GetAssignedProjectSummaryAsync()
+        {
+            try
+            {
+                var response = await httpClient.GetAsync($"{baseUrl}/GetAssignedProjectSummary");
+                if (response.IsSuccessStatusCode)
+                {
+                    var lst = await response.Content.ReadFromJsonAsync<vwvwAssignedProjectSummryDto>();
+                    return lst ?? new();
+                }
+                return new();
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
+        }
     }
 
     public interface IAssignProjectClientService
@@ -103,5 +122,6 @@ namespace TMS.ClientServices
         Task<List<UserProjectDto>> GetByUserId(long userId);
         Task<bool> Save(UserAssignProjectsDto dto);
         Task<bool> Detele(long id);
+        Task<vwvwAssignedProjectSummryDto> GetAssignedProjectSummaryAsync();
     }
 }

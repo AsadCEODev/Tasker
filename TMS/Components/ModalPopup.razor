@@ -1,14 +1,15 @@
 ﻿@if (IsVisible)
 {
     <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered">
+        <!-- yahan @Size variable laga diya hai taake size change ho sakay -->
+        <div class="modal-dialog @Size modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">@Title</h5>
                     <button type="button" class="btn-close" @onclick="Close"></button>
                 </div>
                 <div class="modal-body">
-                    @ChildContent 
+                    @ChildContent
                 </div>
             </div>
         </div>
@@ -18,8 +19,9 @@
 @code {
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public string Title { get; set; } = "Title";
+    [Parameter] public string Size { get; set; } = ""; // Naya parameter (e.g., "modal-lg")
     [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
-    [Parameter] public RenderFragment ChildContent { get; set; } 
+    [Parameter] public RenderFragment ChildContent { get; set; }
 
     private async Task Close()
     {

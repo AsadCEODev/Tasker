@@ -27,4 +27,20 @@ namespace TMS.Shared.Model.Setup
         public bool IsActive { get; set; } = false;
 
     }
+
+
+    public class vwvwAssignedProjectSummry
+    {
+        public int TotalProjects { get; set; }
+        public int UsersWithProjects { get; set; }
+        public int PendingUsers { get; set; }
+    }
+
+
+    public class vwvwAssignedProjectSummryDto
+    {
+        public int TotalProjects { get; set; }
+        public int UsersWithProjects { get; set; }
+        public int PendingUsers { get; set; }
+    }
 }

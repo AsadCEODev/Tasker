@@ -13,8 +13,11 @@ namespace TMS.Shared.Model.Filters
         public long? UserId { get; set; } = 0;
         public int? TagId { get; set; }
         public int? StatusId { get; set; }
+        public string? IsActive { get; set; } = null;
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
+        public string? ColumnName { get; set; } = null;
+        public string? SortType { get; set; } = null;
     }
 
     public class FilterDto
@@ -25,7 +28,10 @@ namespace TMS.Shared.Model.Filters
         public long? UserId { get; set; } = 0;
         public int? TagId { get; set; }
         public int? StatusId { get; set; }
+        public string? IsActive { get; set; } = null;
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
+        public string? ColumnName { get; set; } =  null;
+        public string? SortType { get; set; } = null;
     }
 }

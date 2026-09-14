@@ -16,6 +16,11 @@
                 <NavLink href="/" Match="NavLinkMatch.All"><i data-feather="home"></i><span class="menu-title text-truncate" data-i18n="Dashboards">Dashboards</span></NavLink>
 
             </li>
+            <li>
+                <NavLink href="/Projects">
+                    <i data-feather="folder"></i><span>Projects</span>
+                </NavLink>
+            </li>
             <li class="nav-item has-sub @(settingsOpen ? "open" : "")">
 
                 <a href="#"
@@ -29,9 +34,15 @@
 
                 <ul class="menu-content"
                     style="display:@(settingsOpen ? "block" : "none")">
+                   
                     <li>
-                        <NavLink href="/Projects">
-                            <i data-feather="folder"></i><span>Projects</span>
+                        <NavLink href="/Departments">
+                            <i data-feather="grid"></i><span>Departments</span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink href="/Designations">
+                            <i data-feather="compass"></i><span>Designations</span>
                         </NavLink>
                     </li>
                     <li>
@@ -56,10 +67,10 @@
 
             </li>
             <li>
-                <NavLink href="/Tasks"><i data-feather="check-square"></i><span>Create Tasks</span></NavLink>
+                <NavLink href="/Tasks"><i data-feather="clipboard"></i><span>Create Tasks</span></NavLink>
             </li>
             <li>
-                <NavLink href="/TodoTasks"><i data-feather="list"></i><span>Todo Tasks</span></NavLink>
+                <NavLink href="/TodoTasks"><i data-feather="check-square"></i><span>Todo Tasks</span></NavLink>
             </li>
             <li>
                 <NavLink><i data-feather="calendar"></i><span>Calendar</span></NavLink>

@@ -76,9 +76,11 @@ namespace TMS.Shared.Model.Setup
         [EmailAddress(ErrorMessage = "Invalid Email Address.")]
         public string Email { get; set; } = string.Empty;
 
-        public int? DepartmentId { get; set; } = 0;
+        [Required(ErrorMessage ="Please Assign Department.")]
+        public int DepartmentId { get; set; } = 0;
         public SetupDepartmentDto? DepartmentObj { get; set; } = null;
-        public int? DesignationId { get; set; } = 0;
+        [Required(ErrorMessage = "Please Assign Designation.")]
+        public int DesignationId { get; set; } = 0;
         public SetupDesignationDto? DesignationObj { get; set;} = null;
 
         [Required(ErrorMessage = "Password is required.")]

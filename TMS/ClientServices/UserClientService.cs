@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using TMS.Shared.Model.Filters;
 using TMS.Shared.Model.Setup;
 using TMS.Shared.Pagination;
 
@@ -12,13 +13,19 @@ namespace TMS.ClientServices
         {
             this.httpClient = httpClient;
         }
-        public async Task<PaginationResponse<SetupUserDto>> GetAll(int pageIndex, int pageSize, string? queryString)
+        public async Task<PaginationResponse<SetupUserDto>> GetAll(FilterModel filter)
         {
             try
             {
-                var result = await httpClient.GetFromJsonAsync<PaginationResponse<SetupUserDto>>($"{baseUrl}/GetAll?pageIndex={pageIndex}&pageSize={pageSize}&queryString={queryString}");
+                var response = await httpClient.PostAsJsonAsync($"{baseUrl}/GetAll", filter);
 
-                return result ?? new PaginationResponse<SetupUserDto>();
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<PaginationResponse<SetupUserDto>>();
+                    return result ?? new PaginationResponse<SetupUserDto>();
+                }
+
+                return new PaginationResponse<SetupUserDto>();
             }
             catch (Exception ex)
             {
@@ -138,7 +145,7 @@ namespace TMS.ClientServices
 
     public interface IUserClientService
     {
-        Task<PaginationResponse<SetupUserDto>> GetAll(int pageIndex,int pageSize, string queryString);
+        Task<PaginationResponse<SetupUserDto>> GetAll(FilterModel filters);
         Task<List<SetupUserDto>> GetUsersList();
         Task<SetupUserDto> GetById(long id);
         Task<int> Save(SetupUserDto setupUserDto);

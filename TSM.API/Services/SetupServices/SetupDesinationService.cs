@@ -1,41 +1,42 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TMS.API.Data;
 using TMS.API.Services.SetupServices;
-using TMS.Shared.Helper;
+using TMS.Shared.Enum;
 using TMS.Shared.Model.Filters;
 using TMS.Shared.Model.Setup;
 using TMS.Shared.Pagination;
 using TSM.API.Data;
-using static System.Net.WebRequestMethods;
 
 namespace TSM.API.Services.SetupServices
 {
-    public class SetupDepartmentService : BaseClassService, ISetupDepartmentService
+    public class SetupDesignationService : BaseClassService, ISetupDesignationService
     {
-        private readonly ILogger<SetupDepartmentService> _logger;
-        public SetupDepartmentService(ApplicationDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<SetupDepartmentService> logger) : base(dbContext, configuration, httpContextAccessor)
+        
+        private readonly ILogger<SetupDesignationService> _logger;
+        public SetupDesignationService(ApplicationDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<SetupDesignationService> logger) : base(dbContext, configuration, httpContextAccessor)
         {
             _logger = logger;
         }
 
-        private IQueryable<SetupDepartment> BaseQuery(FilterModel filters)
+
+        private IQueryable<SetupDesignation> BaseQuery(FilterModel filters)
         {
             try
             {
-                var query = dbContext.SetupDepartments.AsQueryable();
+                var query = dbContext.SetupDesignations.AsQueryable();
 
                 if (filters == null) return query;
 
                 if (!string.IsNullOrWhiteSpace(filters.QueryString))
                 {
                     var q = filters.QueryString.Trim().ToLower();
-                    query = query.Where(x => x.DepartmentName.ToLower().Contains(q));
+                    query = query.Where(x => x.DesignationName.ToLower().Contains(q));
                 }
 
 
                 if (!string.IsNullOrWhiteSpace(filters.IsActive))
                 {
-                    if(filters.IsActive == "Active")
+                    if (filters.IsActive == "Active")
                     {
                         query = query.Where(x => x.IsActive == true);
                     }
@@ -44,19 +45,21 @@ namespace TSM.API.Services.SetupServices
                         query = query.Where(x => x.IsActive == false);
                     }
                 }
+
                 return query;
             }
             catch (Exception ex)
             {
+
                 throw new Exception(ex.Message);
             }
+
         }
-        public async Task<PaginationResponse<SetupDepartment>> GetAll(FilterModel filter)
+        public async Task<PaginationResponse<SetupDesignation>> GetAll(FilterModel filter)
         {
             try
             {
                 var query = BaseQuery(filter);
-
                 int totalRecords = query.Count();
 
 
@@ -65,7 +68,7 @@ namespace TSM.API.Services.SetupServices
                     .Take(filter.PageSize)
                     .ToListAsync();
 
-                return new PaginationResponse<SetupDepartment>
+                return new PaginationResponse<SetupDesignation>
                 {
                     Data = items,
                     PageIndex = filter.PageNumber,
@@ -78,11 +81,11 @@ namespace TSM.API.Services.SetupServices
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<List<SetupDepartment>> GetDepartmentsList()
+        public async Task<List<SetupDesignation>> GetDesignationsList()
         {
             try
             {
-                var lst = await dbContext.SetupDepartments.ToListAsync();
+                var lst = await dbContext.SetupDesignations.ToListAsync();
                 return lst;
 
             }
@@ -91,59 +94,57 @@ namespace TSM.API.Services.SetupServices
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<SetupDepartment> GetById(int id)
+        public async Task<SetupDesignation> GetById(int id)
         {
             try
             {
-                var found = await dbContext.SetupDepartments.FirstOrDefaultAsync(x => x.Id == id);
+                var found = await dbContext.SetupDesignations.FirstOrDefaultAsync(x => x.Id == id);
                 return found;
 
             }
-            catch(Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }        
-        }
-        public async Task<int> Save(SetupDepartment model)
-        {
-            try
-            {
-                var found = dbContext.SetupDepartments.FirstOrDefault(x => x.DepartmentName.ToLower() == model.DepartmentName.ToLower());
-                if(found != null)
-                {
-                    return -1;
-                }
-
-                model.CreatedOn = DateFormatClass.CurrentDate();
-                model.CreatedBy = base.LoginUserName;
-
-                dbContext.SetupDepartments.Add(model);
-                await dbContext.SaveChangesAsync();
-                return 1;
-
-            }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
         }
-
-        public async Task<int> Update(SetupDepartment model)
+        public async Task<int> Save(SetupDesignation model)
         {
             try
             {
-                var found = await dbContext.SetupDepartments.FirstOrDefaultAsync(x => x.DepartmentName.ToLower() == model.DepartmentName.ToLower() && x.Id != model.Id);
+                var found = dbContext.SetupDesignations.FirstOrDefault(x => x.DesignationName.ToLower() == model.DesignationName.ToLower());
                 if (found != null)
                 {
                     return -1;
                 }
 
-                var existing = await dbContext.SetupDepartments.FirstOrDefaultAsync(x => x.Id == model.Id);
+                model.CreatedBy = base.LoginUserName;
+                model.CreatedOn = DateTime.Now;
+                dbContext.SetupDesignations.Add(model);
+                await dbContext.SaveChangesAsync();
+                return 1;
 
-                existing.DepartmentName = model.DepartmentName;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<int> Update(SetupDesignation model)
+        {
+            try
+            {
+                var found = dbContext.SetupDesignations.FirstOrDefault(x => x.DesignationName.ToLower() == model.DesignationName.ToLower() && x.Id != model.Id);
+                if (found != null)
+                {
+                    return -1;
+                }
+                var existing = await dbContext.SetupDesignations.FirstOrDefaultAsync(x => x.Id == model.Id);
+
+                existing.DesignationName = model.DesignationName;
                 existing.IsActive = model.IsActive;
                 existing.UpdatedBy = base.LoginUserName;
-                existing.UpdatedOn = DateFormatClass.CurrentDate();
+                existing.UpdatedOn = DateTime.Now;
                 
                 await dbContext.SaveChangesAsync();
                 return 1;
@@ -172,12 +173,11 @@ namespace TSM.API.Services.SetupServices
                 throw new Exception(ex.Message);
             }
         }
-
-        public async Task<vwDepartmentSummaryData> GetDepartmentSummary()
+        public async Task<vwDesignationSummaryData> GetDesignationSummary()
         {
             try
             {
-                var data = await dbContext.GetDataFromView<vwDepartmentSummaryData>("vwDepartmentSummary_Data");
+                var data = await dbContext.GetDataFromView<vwDesignationSummaryData>("vwDesignationSummary_Data");
                 return data;
             }
             catch (Exception ex)
@@ -188,14 +188,14 @@ namespace TSM.API.Services.SetupServices
         }
     }
 
-    public interface ISetupDepartmentService
+    public interface ISetupDesignationService
     {
-        Task<PaginationResponse<SetupDepartment>> GetAll(FilterModel filters);
-        Task<List<SetupDepartment>> GetDepartmentsList();
-        Task<SetupDepartment> GetById(int id);
-        Task<int> Save(SetupDepartment model);
-        Task<int> Update(SetupDepartment model);
+        Task<PaginationResponse<SetupDesignation>> GetAll(FilterModel filter);
+        Task<List<SetupDesignation>> GetDesignationsList();
+        Task<SetupDesignation> GetById(int id);
+        Task<int> Save(SetupDesignation model);
+        Task<int> Update(SetupDesignation model);
         Task<bool> Delete(int id);
-        Task<vwDepartmentSummaryData> GetDepartmentSummary();
+        Task<vwDesignationSummaryData> GetDesignationSummary();
     }
 }

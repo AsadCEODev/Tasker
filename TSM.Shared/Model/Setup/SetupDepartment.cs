@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using TMS.Shared.Pagination;
 
 namespace TMS.Shared.Model.Setup
 {
@@ -20,11 +21,30 @@ namespace TMS.Shared.Model.Setup
     public class SetupDepartmentDto
     {
         public int Id { get; set; }
+        [Required(ErrorMessage ="Please Enter Dasignation Title.")]
         public string DepartmentName { get; set; } = string.Empty;
         public bool IsActive { get; set; } = false;
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedOn { get; set; } = DateTime.Now;
         public string? UpdatedBy { get; set; } = null;
         public DateTime? UpdatedOn { get; set; } = null;
+
+       
     }
+
+
+    public class vwDepartmentSummaryData
+    {
+        public int TotalDepartments { get; set; }
+        public int TotalActiveDepartments { get; set; }
+        public int TotalInActiveDepartments { get; set; }
+    }
+    public class vwDepartmentSummaryDataDto
+    {
+        public int TotalDepartments { get; set; }
+        public int TotalActiveDepartments { get; set; }
+        public int TotalInActiveDepartments { get; set; }
+    }
+
+
 }

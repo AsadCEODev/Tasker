@@ -13,7 +13,7 @@
          @onclick="ToggleDropdown"
          style="min-height: 38px; cursor: @(Disabled ? "not-allowed" : "pointer"); user-select: none;">
 
-        <div class="d-flex flex-wrap gap-1 align-items-center" style="max-height: 70px; overflow-y: auto;">
+        <div class="d-flex flex-wrap align-items-center" style="max-height: 50px; overflow-y: auto;">
             @if (IsMultiple)
             {
                 var selectedItems = GetSelectedItems();
@@ -27,7 +27,7 @@
                     {
                         var val = ValueSelector(item);
                         var text = TextSelector(item);
-                        <span class="badge bg-primary d-inline-flex align-items-center gap-1 py-1 px-2" style="font-size: 0.85rem;">
+                        <span class="badge bg-primary d-inline-flex align-items-center gap-1 py-1 px-1" style="font-size: 0.85rem;">
                             @text
                             @if (!Disabled)
                             {

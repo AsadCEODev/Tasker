@@ -109,5 +109,23 @@ namespace TSM.API.Controllers
                 throw new Exception(ex.Message);
             }
         }
+
+        [HttpGet("GetAssignedProjectSummary")]
+        public async Task<IActionResult> GetAssignedProjectSummary()
+        {
+            try
+            {
+                var result = await thisService.GetAssignedProjectSummary();
+                if (result != null)
+                {
+                    return Ok(result);
+                }
+                return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

@@ -54,15 +54,14 @@ namespace TMS.API.Data
         public DbSet<UserProject> UserProjects { get; set; }
         public DbSet<UserActivityLog> UserActivityLogs { get; set; }
         public DbSet<UserTask> UserTasks { get; set; }
+        public DbSet<AppRole> AppRoles { get; set; }
+        public DbSet<AppRolesScreen> AppRolesScreens { get; set; }
+        public DbSet<AppScreen> AppScreens { get; set; }
 
-
-
-        // 1. Single Object ya Summary ke liye (Error-Free Fix)
         public async Task<T> QueryFirstOrDefaultAsync<T>(string procedureName, Dictionary<string, object> parameters = null) where T : class, new()
         {
             var (query, sqlParams) = BuildProcedureCommand(procedureName, parameters);
 
-            // Pehle data ko list mein fetch karein taaki non-composable SQL ka error na aaye
             var list = await Database
                 .SqlQueryRaw<T>(query, sqlParams)
                 .ToListAsync();
@@ -70,7 +69,6 @@ namespace TMS.API.Data
             return list.FirstOrDefault() ?? new T();
         }
 
-        // 2. Agar procedure se poori List aani ho
         public async Task<List<T>> QueryListAsync<T>(string procedureName, Dictionary<string, object> parameters = null) where T : class
         {
             var (query, sqlParams) = BuildProcedureCommand(procedureName, parameters);
@@ -82,7 +80,6 @@ namespace TMS.API.Data
             return result;
         }
 
-        // Helper method jo query aur parameters ko automatically build karega
         private (string query, SqlParameter[] sqlParams) BuildProcedureCommand(string procedureName, Dictionary<string, object> parameters)
         {
             var sqlParameters = new List<SqlParameter>();
@@ -107,6 +104,27 @@ namespace TMS.API.Data
             return (query, sqlParameters.ToArray());
         }
 
+
+        public async Task<List<T>> GetListFromView<T>(string viewName) where T : class
+        {
+            string query = $"SELECT * FROM {viewName}";
+
+            var result = await Database
+                .SqlQueryRaw<T>(query)
+                .ToListAsync();
+
+            return result;
+        }
+        public async Task<T> GetDataFromView<T>(string viewName) where T : class, new()
+        {
+            string query = $"SELECT * FROM {viewName}";
+
+            var list = await Database
+                .SqlQueryRaw<T>(query)
+                .ToListAsync();
+
+            return list.FirstOrDefault() ?? new T();
+        }
     }
 
 

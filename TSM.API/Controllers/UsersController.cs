@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TMS.API.Services.SetupServices;
+using TMS.Shared.Model.Filters;
 using TMS.Shared.Model.Setup;
 using TMS.Shared.Pagination;
 
@@ -16,10 +17,10 @@ namespace TMS.API.Controllers
         {
             thisService = service;
         }
-        [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll(int pageIndex, int pageSize, string? queryString)
+        [HttpPost("GetAll")]
+        public async Task<IActionResult> GetAll(FilterModel filters)
         {
-            var pagedData = await thisService.GetAll(pageIndex,pageSize, queryString);
+            var pagedData = await thisService.GetAll(filters);
             
             var result = new PaginationResponse<SetupUserDto>
             {

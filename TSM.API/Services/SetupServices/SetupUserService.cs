@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TMS.API.Data;
+using TMS.Shared.Model.Filters;
 using TMS.Shared.Model.Setup;
 using TMS.Shared.Pagination;
 
@@ -23,54 +24,85 @@ namespace TMS.API.Services.SetupServices
             return query;
         }
 
-        private IQueryable<SetupUser> FilteredQuery(string? queryString)
+        private IQueryable<SetupUser> FilteredQuery(FilterModel filters)
         {
-            // BaseQuery se starting query lein jismein includes aur tracking settings pehle se hon
             var query = BaseQuery();
 
-            if (!string.IsNullOrWhiteSpace(queryString))
+            if (!string.IsNullOrWhiteSpace(filters.QueryString))
             {
                 query = query.Where(u =>
-                    (!string.IsNullOrEmpty(u.UserName) && u.UserName.Contains(queryString)) ||
-                    (!string.IsNullOrEmpty(u.Email) && u.Email.Contains(queryString)) ||
-                    (!string.IsNullOrEmpty(u.PhoneNo) && u.PhoneNo.Contains(queryString)) ||
-                    (!string.IsNullOrEmpty(u.FullName) && u.FullName.Contains(queryString)) ||
-                    (!string.IsNullOrEmpty(u.CNIC) && u.CNIC.Contains(queryString))
+                    (!string.IsNullOrEmpty(u.UserName) && u.UserName.Contains(filters.QueryString)) ||
+                    (!string.IsNullOrEmpty(u.Email) && u.Email.Contains(filters.QueryString)) ||
+                    (!string.IsNullOrEmpty(u.PhoneNo) && u.PhoneNo.Contains(filters.QueryString)) ||
+                    (!string.IsNullOrEmpty(u.FullName) && u.FullName.Contains(filters.QueryString)) ||
+                    (!string.IsNullOrEmpty(u.CNIC) && u.CNIC.Contains(filters.QueryString))
                 );
             }
 
+            query = (filters.ColumnName?.ToLower(), filters.SortType?.ToUpper()) switch
+            {
+                ("username", "DESC") => query.OrderByDescending(u => u.UserName),
+                ("username", _) => query.OrderBy(u => u.UserName),
+
+                ("fullname", "DESC") => query.OrderByDescending(u => u.FullName),
+                ("fullname", _) => query.OrderBy(u => u.FullName),
+
+                ("fathername", "DESC") => query.OrderByDescending(u => u.FatherName),
+                ("fathername", _) => query.OrderBy(u => u.FatherName),
+
+                ("email", "DESC") => query.OrderByDescending(u => u.Email),
+                ("email", _) => query.OrderBy(u => u.Email),
+
+                ("phoneno", "DESC") => query.OrderByDescending(u => u.PhoneNo),
+                ("phoneno", _) => query.OrderBy(u => u.PhoneNo),
+
+                ("isactive", "DESC") => query.OrderByDescending(u => u.IsActive),
+                ("isactive", _) => query.OrderBy(u => u.IsActive),
+
+                ("id", "DESC") => query.OrderByDescending(u => u.Id),
+                _ => query.OrderBy(u => u.Id) // Default fallback sorting
+            };
+
+            if (!string.IsNullOrWhiteSpace(filters.IsActive))
+            {
+                if (filters.IsActive == "Active")
+                {
+                    query = query.Where(x => x.IsActive == true);
+                }
+                else if (filters.IsActive == "InActive")
+                {
+                    query = query.Where(x => x.IsActive == false);
+                }
+            } 
             return query;
         }
 
-        public async Task<PaginationResponse<SetupUser>> GetAll(int pageIndex, int pageSize, string? queryString)
+        public async Task<PaginationResponse<SetupUser>> GetAll(FilterModel filters)
         {
             try
             {
-                // 1. Base query define karein
-                var query = FilteredQuery(queryString);
+                var query = FilteredQuery(filters);
 
-                // 3. Pehle TotalCount nikalein (filtered data ka)
                 var totalCount = await query.CountAsync();
 
                 // 4. Data fetch karein
                 var data = await query
-                    .OrderByDescending(u => u.Id)
-                    .Skip((pageIndex - 1) * pageSize)
-                    .Take(pageSize)
+                    
+                    .Skip((filters.PageNumber - 1) * filters.PageSize)
+                    .Take(filters.PageSize)
                     .ToListAsync();
 
                 return new PaginationResponse<SetupUser>
                 {
-                    PageIndex = pageIndex,
-                    PageSize = pageSize,
+                    PageIndex = filters.PageNumber,
+                    PageSize = filters.PageSize,
                     TotalCount = totalCount,
                     Data = data
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Exception re-throw karein taake stack trace zaya na ho
-                throw;
+                throw new Exception(ex.Message);
             }
         }
         public async Task<List<SetupUser>> GetUsersList()
@@ -80,10 +112,9 @@ namespace TMS.API.Services.SetupServices
                 var list = await BaseQuery().ToListAsync();
                 return list;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Exception re-throw karein taake stack trace zaya na ho
-                throw;
+                throw new Exception(ex.Message);
             }
         }
 
@@ -113,13 +144,13 @@ namespace TMS.API.Services.SetupServices
                 var existingUser = await dbContext.SetupUsers.FirstOrDefaultAsync(u => u.UserName == model.UserName);
                 if (existingUser != null)
                 {
-                    return -1; // User already exists
+                    return -1; 
                 }
                 model.HashPassword = BCrypt.Net.BCrypt.HashPassword(model.HashPassword);
 
                 dbContext.SetupUsers.Add(model);
                 await dbContext.SaveChangesAsync();
-                return 1; // User created successfully
+                return 1; 
             }
             catch (Exception ex)
             {
@@ -161,11 +192,11 @@ namespace TMS.API.Services.SetupServices
                 var existingUser = await dbContext.SetupUsers.FirstOrDefaultAsync(u => u.Id == id);
                 if (existingUser == null)
                 {
-                    return false; // User not found
+                    return false; 
                 }
                 dbContext.SetupUsers.Remove(existingUser);
                 await dbContext.SaveChangesAsync();
-                return true; // User deleted successfully
+                return true; 
             }
             catch (Exception ex)
             {
@@ -180,12 +211,12 @@ namespace TMS.API.Services.SetupServices
                 var existingUser = await dbContext.SetupUsers.FirstOrDefaultAsync(u => u.Id == userId);
                 if (existingUser == null)
                 {
-                    return false; // User not found
+                    return false; 
                 }
                 existingUser.HashPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
                 existingUser.UpdatedOn = DateTime.Now;
                 await dbContext.SaveChangesAsync();
-                return true; // Password updated successfully
+                return true; 
             }
             catch (Exception ex)
             {
@@ -218,7 +249,7 @@ namespace TMS.API.Services.SetupServices
 
     public interface ISetupUserService
     {
-        Task<PaginationResponse<SetupUser>> GetAll(int pageIndex, int pageSize,string? queryString);
+        Task<PaginationResponse<SetupUser>> GetAll(FilterModel filters);
         Task<List<SetupUser>> GetUsersList();
         Task<SetupUser> GetById(long id);
         Task<int> Save(SetupUser model);

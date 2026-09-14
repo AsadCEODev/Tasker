@@ -154,7 +154,24 @@ namespace TSM.API.Services.SetupServices
             }
         }
 
+        public async Task<vwvwAssignedProjectSummry> GetAssignedProjectSummary()
+        {
+            try
+            {
+                var data = await dbContext.GetDataFromView<vwvwAssignedProjectSummry>("vwAssignedProjectSummry_Data");
+                return data;
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
+        }
+
     }
+
+
+
 
     public interface IAssignProjectService
     {
@@ -163,5 +180,6 @@ namespace TSM.API.Services.SetupServices
         Task<List<UserProject>> GetByUserId(long userId);
         Task<bool> Save(UserAssignProjectsDto dto);
         Task<bool> Delete(long id);
+        Task<vwvwAssignedProjectSummry> GetAssignedProjectSummary();
     }
 }

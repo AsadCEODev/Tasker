@@ -1,5 +1,6 @@
 ﻿@page "/userpage"
 @using TMS.Shared.Model.Setup
+@using TMS.Shared.Model.Filters
 @using TMS.ClientServices
 @using TMS.Components
 @using TMS.Shared.Pagination
@@ -8,6 +9,8 @@
 
 
 @inject IUserClientService userService;
+@inject IDepartmentsClientService departmentService;
+@inject IDesignationsClientService designationService;
 @inject IJSRuntime JS
 
 <div class="content-wrapper container-xxl-fluid p-0">
@@ -17,8 +20,9 @@
         <!-- users list start -->
         <section class="app-user-list">
             <div class="row">
-                <div class="col-lg-3 col-sm-6">
-                    <div class="card">
+                <!-- Total Users Card -->
+                <div class="col-lg-4 col-sm-6" style="cursor: pointer;" @onclick="@(() => FilterUsers(""))">
+                    <div class="card @(string.IsNullOrEmpty(filters.IsActive) ? "border-success" : "")">
                         <div class="card-body d-flex align-items-center justify-content-between">
                             <div>
                                 <h3 class="fw-bolder mb-75">@userSummary.TotalUserCount</h3>
@@ -32,8 +36,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-sm-6">
-                    <div class="card">
+
+                <!-- Active Users Card -->
+                <div class="col-lg-4 col-sm-6" style="cursor: pointer;" @onclick="@(() => FilterUsers("Active"))">
+                    <div class="card @(filters.IsActive == "Active" ? "border-success" : "")">
                         <div class="card-body d-flex align-items-center justify-content-between">
                             <div>
                                 <h3 class="fw-bolder mb-75">@userSummary.ActiveUserCount</h3>
@@ -47,8 +53,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-sm-6">
-                    <div class="card">
+
+                <!-- InActive Users Card -->
+                <div class="col-lg-4 col-sm-6" style="cursor: pointer;" @onclick="@(() => FilterUsers("InActive"))">
+                    <div class="card @(filters.IsActive == "InActive" ? "border-success" : "")">
                         <div class="card-body d-flex align-items-center justify-content-between">
                             <div>
                                 <h3 class="fw-bolder mb-75">@userSummary.InactiveUserCount</h3>
@@ -59,27 +67,11 @@
                                     <i data-feather="user-x" class="font-medium-4"></i>
                                 </span>
                             </div>
-                            
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-lg-3 col-sm-6">
-                    <div class="card">
-                        <div class="card-body d-flex align-items-center justify-content-between">
-                            <div>
-                                <h3 class="fw-bolder mb-75">0</h3>
-                                <span>Pending Users</span>
-                            </div>
-                            <div class="avatar bg-light-warning p-50">
-                                <span class="avatar-content">
-                                    <i data-feather="user-plus" class="font-medium-4"></i>
-                                </span>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+        
             <!-- list and filter start -->
             <div class="card">
 
@@ -105,7 +97,7 @@
                                            style="width:200px;"
                                            placeholder="Search..." @oninput="HandleInput" />
                                 </div>
-                                
+
                                 <div class="dropdown">
                                     <button class="btn btn-outline-secondary dropdown-toggle"
                                             data-bs-toggle="dropdown">
@@ -124,12 +116,7 @@
                                 <button class="btn btn-primary" @onclick="OpenModel">
                                     Add New User
                                 </button>
-                                <!-- edit user  -->
-                            
-                                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUser">Show</button>
-                                     
-                                
-                                <!-- / edit user  -->
+                           
                             </div>
 
                         </div>
@@ -157,12 +144,27 @@
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>User Name</th>
-                                        <th>Full Name</th>
-                                        <th>Father Name</th>
-                                        <th>Email</th>
-                                        <th>Phone No</th>
-                                        <th>STATUS</th>
+                                        <th @onclick='() => SortTable("Id")' role="button">
+                                            Id @GetSortIcon("Id")
+                                        </th>
+                                        <th @onclick='() => SortTable("UserName")' role="button">
+                                            User Name @GetSortIcon("UserName")
+                                        </th>
+                                        <th @onclick='() => SortTable("FullName")' role="button">
+                                            Full Name @GetSortIcon("FullName")
+                                        </th>
+                                        <th @onclick='() => SortTable("FatherName")' role="button">
+                                            Father Name @GetSortIcon("FatherName")
+                                        </th>
+                                        <th @onclick='() => SortTable("Email")' role="button">
+                                            Email @GetSortIcon("Email")
+                                        </th>
+                                        <th @onclick='() => SortTable("PhoneNo")' role="button">
+                                            Phone No @GetSortIcon("PhoneNo")
+                                        </th>
+                                        <th @onclick='() => SortTable("IsActive")' role="button">
+                                            STATUS @GetSortIcon("IsActive")
+                                        </th>
                                         <th>ACTIONS</th>
                                     </tr>
                                 </thead>
@@ -176,6 +178,7 @@
                                         @foreach (var user in pagedResult.Data)
                                         {
                                             <tr>
+                                                <td><span>@user.Id</span></td>
                                                 <td><span>@user.UserName</span></td>
                                                 <td><span>@user.FullName</span></td>
                                                 <td><span>@user.FatherName</span></td>
@@ -202,7 +205,7 @@
                     <div class="d-flex justify-content-between align-items-center mt-3">
                         @if (pagedResult != null && pagedResult.TotalCount > 0)
                         {
-                            
+
                             <span class="text-muted">
                                 Showing page @pagedResult.PageIndex of @pagedResult.TotalPages
                             </span>
@@ -243,186 +246,131 @@
             <!-- list and filter end -->
         </section>
         <!-- users list ends -->
-        
+
     </div>
 </div>
 
 
-<ModalPopup Title="User Details" @bind-IsVisible="isModalOpen">
-    <EditForm Model="@userDto" OnValidSubmit="Save">
-        <DataAnnotationsValidator />
+<ModalPopup Title="User Details" @bind-IsVisible="isModalOpen" Size="modal-lg">
+    <div class="pb-5 px-sm-5 pt-50">
+        <div class="text-center mb-2">
+            <h1 class="mb-1">@(userDto.Id > 0 ? "Edit User Information" : "Create New User")</h1>
+            <p>Fill in the user details and system credentials below.</p>
+        </div>
 
-        <div class="row">
-            <div class="col-md-6 mb-1">
-                <label class="form-label">User Name<span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="userDto.UserName" disabled="@isDisabled"  />
-                <ValidationMessage For="@(() => userDto.UserName)" />
+        <EditForm Model="@userDto" OnValidSubmit="Save" class="row gy-1 pt-75">
+            <DataAnnotationsValidator />
+
+            <!-- User Name -->
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="modalUserName">User Name <span class="text-danger">*</span></label>
+                <InputText id="modalUserName" class="form-control" @bind-Value="userDto.UserName" disabled="@isDisabled" placeholder="Enter username" />
+                <ValidationMessage For="@(() => userDto.UserName)" class="text-danger small" />
             </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">Full Name<span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="userDto.FullName"  />
-                <ValidationMessage For="@(() => userDto.FullName)" />
+
+            <!-- Full Name -->
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="modalFullName">Full Name <span class="text-danger">*</span></label>
+                <InputText id="modalFullName" class="form-control" @bind-Value="userDto.FullName" placeholder="Enter full name" />
+                <ValidationMessage For="@(() => userDto.FullName)" class="text-danger small" />
             </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">Full Name<span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="userDto.FatherName" />
-                <ValidationMessage For="@(() => userDto.FatherName)" />
+
+            <!-- Father Name -->
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="modalFatherName">Father Name <span class="text-danger">*</span></label>
+                <InputText id="modalFatherName" class="form-control" @bind-Value="userDto.FatherName" placeholder="Enter father name" />
+                <ValidationMessage For="@(() => userDto.FatherName)" class="text-danger small" />
             </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">Phone<span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="userDto.PhoneNo" />
-                <ValidationMessage For="@(() => userDto.PhoneNo)" />
+
+            <!-- Phone -->
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="modalPhone">Cell Phone No <span class="text-danger">*</span></label>
+                <InputText id="modalPhone" class="form-control" @bind-Value="userDto.PhoneNo" />
+                <ValidationMessage For="@(() => userDto.PhoneNo)" class="text-danger small" />
             </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">CNIC<span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="userDto.CNIC"  />
-                <ValidationMessage For="@(() => userDto.CNIC)" />
+
+            <!-- CNIC -->
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="modalCnic">NIC/Passport <span class="text-danger">*</span></label>
+                <InputText id="modalCnic" class="form-control" @bind-Value="userDto.CNIC" />
+                <ValidationMessage For="@(() => userDto.CNIC)" class="text-danger small" />
             </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">Email<span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="userDto.Email"  />
-                <ValidationMessage For="@(() => userDto.Email)" />
+
+            <!-- Email -->
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="modalEmail">Email <span class="text-danger">*</span></label>
+                <InputText id="modalEmail" class="form-control" @bind-Value="userDto.Email" placeholder="example@domain.com" />
+                <ValidationMessage For="@(() => userDto.Email)" class="text-danger small" />
             </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">Password<span class="text-danger">*</span></label>
-                <InputText class="form-control" type="password" @bind-Value="userDto.HashPassword" disabled="@isDisabled" />
-                <ValidationMessage For="@(() => userDto.HashPassword)" />
+            <div class="col-12 col-md-6 mb-1">
+                <label class="form-label">Assign Department<span class="text-danger">*</span></label>
+                <KrSelect2 TItem="SetupDepartmentDto"
+                           TValue="int"
+                           Items="departmentsList"
+                           
+                           ValueSelector="@(u => u.Id)"
+                           TextSelector="@(u => u.DepartmentName)"
+                           @bind-Value="userDto.DepartmentId" />
+                @if (!String.IsNullOrWhiteSpace(departmentError))
+                {
+                    <span class="text-danger small">@departmentError</span>
+                }
             </div>
-            <div class="col-md-6 mb-1">
-                <label class="form-label">Confirm Password<span class="text-danger">*</span></label>
-                <InputText class="form-control" type="password" @bind-Value="userDto.ConfirmPassword" disabled="@isDisabled" />
-                <ValidationMessage For="@(() => userDto.ConfirmPassword)" />
+
+            <div class="col-12 col-md-6 mb-1">
+                <label class="form-label">Assign Designation<span class="text-danger">*</span></label>
+                <KrSelect2 TItem="SetupDesignationDto"
+                           TValue="int"
+                           Items="designationsList"
+                           
+                           ValueSelector="@(u => u.Id)"
+                           TextSelector="@(u => u.DesignationName)"
+                           @bind-Value="userDto.DesignationId" />
+                @if (!String.IsNullOrWhiteSpace(designationError))
+                {
+                    <span class="text-danger small">@designationError</span>
+                }
             </div>
-            <div class="col-md-6 mb-3">
-                <div class="form-check form-switch">
-                    <InputCheckbox class="form-check-input" id="isActiveCheck" @bind-Value="userDto.IsActive" />
-                    <label class="form-check-label" for="isActiveCheck">Is Active</label>
+            <!-- Password -->
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="modalPassword">Password <span class="text-danger">*</span></label>
+                <InputText id="modalPassword" class="form-control" type="password" @bind-Value="userDto.HashPassword" disabled="@isDisabled" placeholder="••••••••" />
+                <ValidationMessage For="@(() => userDto.HashPassword)" class="text-danger small" />
+            </div>
+
+           
+
+
+            <!-- Confirm Password -->
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="modalConfirmPassword">Confirm Password <span class="text-danger">*</span></label>
+                <InputText id="modalConfirmPassword" class="form-control" type="password" @bind-Value="userDto.ConfirmPassword" disabled="@isDisabled" placeholder="••••••••" />
+                <ValidationMessage For="@(() => userDto.ConfirmPassword)" class="text-danger small" />
+            </div>
+
+            <!-- Is Active Switch -->
+            <div class="col-12">
+                <div class="d-flex align-items-center mt-1">
+                    <div class="form-check form-switch form-check-primary">
+                        <InputCheckbox class="form-check-input" id="isActiveCheck" @bind-Value="userDto.IsActive" />
+                        <label class="form-check-label" for="isActiveCheck"></label>
+                    </div>
+                    <label class="form-check-label fw-bolder ms-1" for="isActiveCheck">Is Active</label>
                 </div>
             </div>
-        </div>
 
-        <div class="modal-footer">
-            <button type="submit" class="btn btn-primary">
-                @(userDto.Id > 0 ? "Update" : "Save")
-            </button>
-            <button type="button" class="btn btn-outline-secondary" @onclick="() => isModalOpen = false">Cancel</button>
-        </div>
-    </EditForm>
+            <!-- Form Buttons -->
+            <div class="col-12 text-center mt-2 pt-50">
+                <button type="submit" class="btn btn-primary me-1">
+                    @(userDto.Id > 0 ? "Update" : "Save")
+                </button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="() => isModalOpen = false">
+                    Discard
+                </button>
+            </div>
+        </EditForm>
+    </div>
 </ModalPopup>
-
-<!-- Edit User Modal -->
-<div class="modal fade" id="editUser" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-edit-user">
-        <div class="modal-content">
-            <div class="modal-header bg-transparent">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body pb-5 px-sm-5 pt-50">
-                <div class="text-center mb-2">
-                    <h1 class="mb-1">Edit User Information</h1>
-                    <p>Updating user details will receive a privacy audit.</p>
-                </div>
-                <form id="editUserForm" class="row gy-1 pt-75" onsubmit="return false">
-                    <div class="col-12 col-md-6">
-                        <label class="form-label" for="modalEditUserFirstName">First Name</label>
-                        <input type="text" id="modalEditUserFirstName" name="modalEditUserFirstName" class="form-control" placeholder="John" value="Gertrude" data-msg="Please enter your first name" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label class="form-label" for="modalEditUserLastName">Last Name</label>
-                        <input type="text" id="modalEditUserLastName" name="modalEditUserLastName" class="form-control" placeholder="Doe" value="Barton" data-msg="Please enter your last name" />
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label" for="modalEditUserName">Username</label>
-                        <input type="text" id="modalEditUserName" name="modalEditUserName" class="form-control" value="gertrude.dev" placeholder="john.doe.007" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label class="form-label" for="modalEditUserEmail">Billing Email:</label>
-                        <input type="text" id="modalEditUserEmail" name="modalEditUserEmail" class="form-control" value="gertrude@gmail.com" placeholder="example@domain.com" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label class="form-label" for="modalEditUserStatus">Status</label>
-                        <select id="modalEditUserStatus" name="modalEditUserStatus" class="form-select" aria-label="Default select example">
-                            <option selected>Status</option>
-                            <option value="1">Active</option>
-                            <option value="2">Inactive</option>
-                            <option value="3">Suspended</option>
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label class="form-label" for="modalEditTaxID">Tax ID</label>
-                        <input type="text" id="modalEditTaxID" name="modalEditTaxID" class="form-control modal-edit-tax-id" placeholder="Tax-8894" value="Tax-8894" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label class="form-label" for="modalEditUserPhone">Contact</label>
-                        <input type="text" id="modalEditUserPhone" name="modalEditUserPhone" class="form-control phone-number-mask" placeholder="+1 (609) 933-44-22" value="+1 (609) 933-44-22" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label class="form-label" for="modalEditUserLanguage">Language</label>
-                        <select id="modalEditUserLanguage" name="modalEditUserLanguage" class="select2 form-select" multiple>
-                            <option value="english">English</option>
-                            <option value="spanish">Spanish</option>
-                            <option value="french">French</option>
-                            <option value="german">German</option>
-                            <option value="dutch">Dutch</option>
-                            <option value="hebrew">Hebrew</option>
-                            <option value="sanskrit">Sanskrit</option>
-                            <option value="hindi">Hindi</option>
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label class="form-label" for="modalEditUserCountry">Country</label>
-                        <select id="modalEditUserCountry" name="modalEditUserCountry" class="select2 form-select">
-                            <option value="">Select Value</option>
-                            <option value="Australia">Australia</option>
-                            <option value="Bangladesh">Bangladesh</option>
-                            <option value="Belarus">Belarus</option>
-                            <option value="Brazil">Brazil</option>
-                            <option value="Canada">Canada</option>
-                            <option value="China">China</option>
-                            <option value="France">France</option>
-                            <option value="Germany">Germany</option>
-                            <option value="India">India</option>
-                            <option value="Indonesia">Indonesia</option>
-                            <option value="Israel">Israel</option>
-                            <option value="Italy">Italy</option>
-                            <option value="Japan">Japan</option>
-                            <option value="Korea">Korea, Republic of</option>
-                            <option value="Mexico">Mexico</option>
-                            <option value="Philippines">Philippines</option>
-                            <option value="Russia">Russian Federation</option>
-                            <option value="South Africa">South Africa</option>
-                            <option value="Thailand">Thailand</option>
-                            <option value="Turkey">Turkey</option>
-                            <option value="Ukraine">Ukraine</option>
-                            <option value="United Arab Emirates">United Arab Emirates</option>
-                            <option value="United Kingdom">United Kingdom</option>
-                            <option value="United States">United States</option>
-                        </select>
-                    </div>
-                    <div class="col-12">
-                        <div class="d-flex align-items-center mt-1">
-                            <div class="form-check form-switch form-check-primary">
-                                <input type="checkbox" class="form-check-input" id="customSwitch10" checked />
-                                <label class="form-check-label" for="customSwitch10">
-                                    <span class="switch-icon-left"><i data-feather="check"></i></span>
-                                    <span class="switch-icon-right"><i data-feather="x"></i></span>
-                                </label>
-                            </div>
-                            <label class="form-check-label fw-bolder" for="customSwitch10">Use as a billing address?</label>
-                        </div>
-                    </div>
-                    <div class="col-12 text-center mt-2 pt-50">
-                        <button type="submit" class="btn btn-primary me-1">Submit</button>
-                        <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-label="Close">
-                            Discard
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<!--/ Edit User Modal -->
 
 
 <ToastMessage @ref="toastRef" />
@@ -431,7 +379,9 @@
     private PaginationResponse<SetupUserDto> pagedResult = new();
     private int currentPage = 1;
     private int pageSize = 10;
-
+    private FilterModel filters { get; set; } = new();
+    public List<SetupDepartmentDto> departmentsList = new();
+    public List<SetupDesignationDto> designationsList= new();
     public SetupUserDto userDto { get; set; } = new();
     public UserSummary? userSummary { get; set; } = new();
     public bool isLoading { get; set; } = true;
@@ -440,10 +390,15 @@
     private bool isDisabled = false;
     private string queryString = string.Empty;
     private Timer? debounceTimer;
+    private string departmentError = "";
+    private string designationError = "";
+    private string currentSortColumn = string.Empty;
+    private string currentSortType = "ASC";
 
     protected override async Task OnInitializedAsync()
     {
         await LoadData();
+        await LoadDataLists();
     }
 
     private async Task LoadData()
@@ -452,7 +407,7 @@
         {
             isLoading = true;
 
-            pagedResult = await userService.GetAll(currentPage, pageSize, queryString);
+            pagedResult = await userService.GetAll(filters);
 
             userSummary = await userService.GetUsersSummary();
             StateHasChanged();
@@ -464,6 +419,19 @@
         finally
         {
             isLoading = false;
+        }
+    }
+
+    private async Task LoadDataLists()
+    {
+        try
+        {
+            departmentsList = await departmentService.GetDepartmentsList();
+            designationsList = await designationService.GetDesignationsList();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
         }
     }
 
@@ -487,7 +455,6 @@
         }
     }
 
-
     private async Task EditUser(long id)
     {
         try
@@ -502,13 +469,15 @@
             userDto.Id = found.Id;
             userDto.UserName = found.UserName;
             userDto.FullName = found.FullName;
+            userDto.FatherName = found.FatherName;
             userDto.CNIC = found.CNIC;
             userDto.Email = found.Email;
             userDto.PhoneNo = found.PhoneNo;
+            userDto.DepartmentId = found.DepartmentId;
+            userDto.DesignationId = found.DesignationId;
             userDto.HashPassword = found.HashPassword;
             userDto.ConfirmPassword = found.HashPassword;
             userDto.IsActive = found.IsActive;
-
             isModalOpen = true;
 
         }
@@ -526,7 +495,12 @@
         {
             int result;
 
-            if(userDto.Id > 0)
+            if (!await Validate())
+            {
+                return;
+            }
+
+            if (userDto.Id > 0)
             {
                 result = await userService.Update(userDto);
             }
@@ -543,7 +517,7 @@
                 isModalOpen = false;
                 userDto = new();
             }
-            else if(result == -1)
+            else if (result == -1)
             {
                 toastRef.Show("User Name already Exist.", "error");
             }
@@ -558,34 +532,109 @@
 
         }
     }
-
-
     private void HandleInput(ChangeEventArgs e)
     {
         queryString = e.Value?.ToString();
-
-        // Debounce logic: 500ms tak wait karein
         debounceTimer?.Dispose();
         debounceTimer = new System.Timers.Timer(500);
         debounceTimer.Elapsed += async (s, e) => await Search();
         debounceTimer.AutoReset = false;
         debounceTimer.Start();
     }
-
     private async Task Search()
     {
         try
         {
             await InvokeAsync(async () =>
             {
-                pagedResult = await userService.GetAll(currentPage, pageSize, queryString);
+                pagedResult = await userService.GetAll(filters);
                 StateHasChanged();
             });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Error log karein
+            toastRef.Show($"Error: {ex.Message}", "error");
         }
     }
 
+    public void Dispose()
+    {
+        debounceTimer?.Dispose();
+    }
+
+    private async Task<bool> Validate()
+    {
+        try
+        {
+            departmentError = string.Empty;
+            designationError = string.Empty;
+
+            bool isValid = true;
+
+            if (userDto.DepartmentId <= 0)
+            {
+                departmentError = "Please Assign Department to this User.";
+                isValid = false; 
+            }
+
+            if (userDto.DesignationId <= 0)
+            {
+                designationError = "Please Assign Designation to this User.";
+                isValid = false; 
+            }
+
+            return isValid;
+        }
+        catch (Exception ex)
+        {
+            toastRef.Show($"Error: {ex.Message}", "error");
+            return false;
+        }
+    }
+    private async Task SortTable(string columnName)
+    {
+        if (currentSortColumn == columnName)
+        {
+            currentSortType = currentSortType == "ASC" ? "DESC" : "ASC";
+        }
+        else
+        {
+            currentSortColumn = columnName;
+            currentSortType = "ASC";
+        }
+
+        filters.ColumnName = currentSortColumn;
+        filters.SortType = currentSortType;
+        filters.PageNumber = currentPage;
+
+        await LoadData();
+    }
+
+    private MarkupString GetSortIcon(string columnName)
+    {
+        if (currentSortColumn != columnName)
+        {
+            return new MarkupString("<i data-feather='menu' class='font-small-3 text-muted ms-50'></i>");
+        }
+
+        return currentSortType == "ASC"
+            ? new MarkupString("<i data-feather='chevron-up' class='font-small-3 text-primary ms-50'></i>")
+            : new MarkupString("<i data-feather='chevron-down' class='font-small-3 text-primary ms-50'></i>");
+    }
+
+    private async Task FilterUsers(string type)
+    {
+        try
+        {
+            filters.IsActive = type;
+
+            await LoadData();
+            StateHasChanged();
+
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
 }

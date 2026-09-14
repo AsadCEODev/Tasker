@@ -10,50 +10,51 @@ namespace TSM.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DepartmentsController : ControllerBase
+    public class DesignationsController : ControllerBase
     {
-        private readonly ISetupDepartmentService thisService;
-        public DepartmentsController(ISetupDepartmentService _thisService)
+        private readonly ISetupDesignationService thisService;
+        public DesignationsController(ISetupDesignationService _thisService)
         {
             thisService = _thisService;
         }
 
         [HttpPost("GetAll")]
-        public async Task<IActionResult> GetAll( FilterModel filter)
+        public async Task<IActionResult> GetAll(FilterModel filter)
         {
             try
             {
-                var pagedResult = await thisService.GetAll(filter);
-
-                if (pagedResult?.Data == null || !pagedResult.Data.Any())
+                var lst = await thisService.GetAll(filter);
+                if(lst == null)
                 {
-                    return NotFound(new { message = "No departments found." });
+                    return NotFound();
                 }
-                var converted = pagedResult.Adapt<PaginationResponse<SetupDepartmentDto>>();
+                var converted = lst.Adapt<PaginationResponse<SetupDesignationDto>>();
                 return Ok(converted);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An internal error occurred.", error = ex.Message });
+
+                throw new Exception(ex.Message);
             }
         }
 
-        [HttpGet("GetDepartmentsList")]
-        public async Task<IActionResult> GetDepartmentsList()
+        [HttpGet("GetDesignationsList")]
+        public async Task<IActionResult> GetDesignationsList()
         {
             try
             {
-                var lst = await thisService.GetDepartmentsList();
-                if(lst == null)
+                var lst = await thisService.GetDesignationsList();
+                if (lst == null)
                 {
                     return NotFound(lst);
                 }
-                var converted = lst.Adapt<List<SetupDepartmentDto>>();
+                var converted = lst.Adapt<List<SetupDesignationDto>>();
                 return Ok(converted);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An internal error occurred.", error = ex.Message });
+
+                throw new Exception(ex.Message);
             }
         }
 
@@ -67,7 +68,7 @@ namespace TSM.API.Controllers
                 {
                     return NotFound();
                 }
-                var converted = found.Adapt<SetupDepartmentDto>();
+                var converted = found.Adapt<SetupDesignationDto>();
                 return Ok(converted);
             }
             catch (Exception ex)
@@ -78,11 +79,11 @@ namespace TSM.API.Controllers
         }
 
         [HttpPost("Save")]
-        public async Task<IActionResult> Save(SetupDepartmentDto dto)
+        public async Task<IActionResult> Save(SetupDesignationDto dto)
         {
             try
             {
-                var converted = dto.Adapt<SetupDepartment>();
+                var converted = dto.Adapt<SetupDesignation>();
                 var result = await thisService.Save(converted);
                 return Ok(result);
             }
@@ -95,11 +96,11 @@ namespace TSM.API.Controllers
 
 
         [HttpPost("Update")]
-        public async Task<IActionResult> Update(SetupDepartmentDto dto)
+        public async Task<IActionResult> Update(SetupDesignationDto dto)
         {
             try
             {
-                var converted = dto.Adapt<SetupDepartment>();
+                var converted = dto.Adapt<SetupDesignation>();
                 var result = await thisService.Update(converted);
                 return Ok(result);
             }
@@ -125,17 +126,18 @@ namespace TSM.API.Controllers
             }
         }
 
-        [HttpGet("GetDepartmentSummary")]
-        public async Task<IActionResult> GetDepartmentSummary()
+
+        [HttpGet("GetDesignationSummary")]
+        public async Task<IActionResult> GetDesignationSummary()
         {
             try
             {
-                var dala = await thisService.GetDepartmentSummary();
-                if(dala == null)
+                var dala = await thisService.GetDesignationSummary();
+                if (dala == null)
                 {
                     return NotFound(new());
                 }
-                var converted = dala.Adapt<vwDepartmentSummaryDataDto>();
+                var converted = dala.Adapt<vwDesignationSummaryDataDto>();
                 return Ok(converted);
             }
             catch (Exception)
