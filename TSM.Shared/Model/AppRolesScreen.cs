@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace TMS.Shared.Model
@@ -10,7 +11,11 @@ namespace TMS.Shared.Model
         [Key]
         public long Id { get; set; }
         public long RoleId { get; set; }
+        [ForeignKey(nameof(RoleId))]
+        public AppRole? RoleObject { get; set; } = null;
         public int ScreenId {  get; set; }
+        [ForeignKey(nameof(ScreenId))]
+        public AppScreen? ScreenObject { get; set; }
         public bool CanView { get; set; } = false;
         public bool CanAdd { get; set; } = false;
         public bool CanEdit { get; set; } = false;
@@ -27,4 +32,6 @@ namespace TMS.Shared.Model
         public bool CanEdit { get; set; } = false;
         public bool CanDelete { get; set; } = false;
     }
+
+   
 }

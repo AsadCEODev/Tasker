@@ -1,0 +1,429 @@
+﻿@page "/RolesPage"
+@using TMS.ClientServices
+@using TMS.Shared.Model
+@using TMS.Components
+
+@inject IAppScreenClientService screenService;
+@inject IAppRolesClientService rolesService;
+
+
+
+<!-- BEGIN: Content-->
+<div class=" ">
+    <div class="content-overlay"></div>
+    <div class="header-navbar-shadow"></div>
+    <div class="content-wrapper  p-0">
+        <div class="content-header row">
+        </div>
+        <div class="content-body">
+            <h3>App Roles List</h3>
+            @*  <p class="mb-2">
+                A role provided access to predefined menus and features so that depending <br />
+                on assigned role an administrator can have access to what he need
+            </p> *@
+
+            <!-- Role cards -->
+            <div class="row">
+                <div class="col-xl-4 col-lg-6 col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <span>Total 4 users</span>
+                                <ul class="list-unstyled d-flex align-items-center avatar-group mb-0">
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Vinnie Mostowy" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/2.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Allen Rieske" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/12.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Julee Rossignol" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/6.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Kaith D'souza" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/11.png" alt="Avatar" />
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end mt-1 pt-25">
+                                <div class="role-heading">
+                                    <h4 class="fw-bolder">Administrator</h4>
+                                    <a href="javascript:;" class="role-edit-modal" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+                                        <small class="fw-bolder">Edit Role</small>
+                                    </a>
+                                </div>
+                                <a href="javascript:void(0);" class="text-body"><i data-feather="copy" class="font-medium-5"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-6 col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <span>Total 7 users</span>
+                                <ul class="list-unstyled d-flex align-items-center avatar-group mb-0">
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Jimmy Ressula" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/4.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="John Doe" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/1.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Kristi Lawker" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/2.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Kaith D'souza" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/5.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Danny Paul" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/7.png" alt="Avatar" />
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end mt-1 pt-25">
+                                <div class="role-heading">
+                                    <h4 class="fw-bolder">Manager</h4>
+                                    <a href="javascript:;" class="role-edit-modal" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+                                        <small class="fw-bolder">Edit Role</small>
+                                    </a>
+                                </div>
+                                <a href="javascript:void(0);" class="text-body"><i data-feather="copy" class="font-medium-5"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-6 col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <span>Total 5 users</span>
+                                <ul class="list-unstyled d-flex align-items-center avatar-group mb-0">
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Andrew Tye" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/6.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Rishi Swaat" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/9.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Rossie Kim" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/12.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Kim Merchent" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/10.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Sam D'souza" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/8.png" alt="Avatar" />
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end mt-1 pt-25">
+                                <div class="role-heading">
+                                    <h4 class="fw-bolder">Users</h4>
+                                    <a href="javascript:;" class="role-edit-modal" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+                                        <small class="fw-bolder">Edit Role</small>
+                                    </a>
+                                </div>
+                                <a href="javascript:void(0);" class="text-body"><i data-feather="copy" class="font-medium-5"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-6 col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <span>Total 3 users</span>
+                                <ul class="list-unstyled d-flex align-items-center avatar-group mb-0">
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Kim Karlos" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/3.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Katy Turner" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/9.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Peter Adward" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/12.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Kaith D'souza" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/10.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="John Parker" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/11.png" alt="Avatar" />
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end mt-1 pt-25">
+                                <div class="role-heading">
+                                    <h4 class="fw-bolder">Support</h4>
+                                    <a href="javascript:;" class="role-edit-modal" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+                                        <small class="fw-bolder">Edit Role</small>
+                                    </a>
+                                </div>
+                                <a href="javascript:void(0);" class="text-body"><i data-feather="copy" class="font-medium-5"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-6 col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <span>Total 2 users</span>
+                                <ul class="list-unstyled d-flex align-items-center avatar-group mb-0">
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Kim Merchent" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/10.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Sam D'souza" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/6.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Nurvi Karlos" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/3.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Andrew Tye" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/8.png" alt="Avatar" />
+                                    </li>
+                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top" title="Rossie Kim" class="avatar avatar-sm pull-up">
+                                        <img class="rounded-circle" src="../../../app-assets/images/avatars/9.png" alt="Avatar" />
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end mt-1 pt-25">
+                                <div class="role-heading">
+                                    <h4 class="fw-bolder">Restricted User</h4>
+                                    <a href="javascript:;" class="role-edit-modal" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+                                        <small class="fw-bolder">Edit Role</small>
+                                    </a>
+                                </div>
+                                <a href="javascript:void(0);" class="text-body"><i data-feather="copy" class="font-medium-5"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-6 col-md-6">
+                    <div class="card">
+                        <div class="row">
+                            <div class="col-sm-5">
+                                <div class="d-flex align-items-end justify-content-center h-100">
+                                    <img src="../../../app-assets/images/illustration/faq-illustrations.svg" class="img-fluid mt-2" alt="Image" width="85" />
+                                </div>
+                            </div>
+                            <div class="col-sm-7">
+                                <div class="card-body text-sm-end text-center ps-sm-0">
+                                    <a href="javascript:void(0)" data-bs-target="#addRoleModal" data-bs-toggle="modal" class="stretched-link text-nowrap add-new-role" @onclick="OpenForAdd">
+                                        <span class="btn btn-primary mb-1">Add New Role</span>
+                                    </a>
+                                    <p class="mb-0">Add role, if it does not exist</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--/ Role cards -->
+           
+            <div class="modal fade" id="addRoleModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered modal-add-new-role">
+                    <div class="modal-content">
+                        <div class="modal-header bg-transparent">
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body px-3 ">
+                            <div class="text-center mb-1">
+                                <!-- Dynamic Title -->
+                                <h1 class="role-title">@(appRoleDto.Id == 0 ? "Add New Role" : "Edit Role")</h1>
+                                <p>Set role permissions</p>
+                            </div>
+
+                            <!-- Form Submit Binding -->
+                            <form id="addRoleForm" class="row" @onsubmit="HandleSubmit">
+                                <div class="col-12 mb-3">
+                                    <label class="form-label" for="modalRoleName">Role Name</label>
+                                    <!-- Role Name Binding -->
+                                    <input type="text" name="modalRoleName" class="form-control" placeholder="Enter Role Name" @bind="appRoleDto.RoleName" required />
+                                </div>
+
+                                <div class="col-12">
+                                    <h4 class="pt-50">Role Permissions</h4>
+
+                                    <!-- Permission table -->
+                                    <div class="table-responsive">
+                                        <table class="table table-flush-spacing">
+                                            <tbody>
+                                                @if (screenList != null && screenList.Any())
+                                                {
+                                                    @foreach (var screen in screenList)
+                                                    {
+                                                        var permission = appRoleDto.Permissions.FirstOrDefault(p => p.ScreenId == screen.Id);
+                                                        if (permission == null)
+                                                        {
+                                                            permission = new AppRolesScreenDto { ScreenId = screen.Id };
+                                                            appRoleDto.Permissions.Add(permission);
+                                                        }
+
+                                                        <tr>
+                                                            <td class="text-nowrap fw-bolder align-middle">@screen.ScreenName</td>
+                                                            <td class="align-middle">
+                                                                <div class="d-flex align-items-center flex-nowrap overflow-x-auto py-1">
+                                                                    <div class="form-check form-switch me-4 flex-shrink-0">
+                                                                        <input class="form-check-input" type="checkbox" role="switch" @bind="permission.CanView" />
+                                                                        <label class="form-check-label">Read</label>
+                                                                    </div>
+                                                                    <div class="form-check form-switch me-4 flex-shrink-0">
+                                                                        <input class="form-check-input" type="checkbox" role="switch" @bind="permission.CanAdd" />
+                                                                        <label class="form-check-label">Add</label>
+                                                                    </div>
+                                                                    <div class="form-check form-switch me-4 flex-shrink-0">
+                                                                        <input class="form-check-input" type="checkbox" role="switch" @bind="permission.CanEdit" />
+                                                                        <label class="form-check-label">Edit</label>
+                                                                    </div>
+                                                                    <div class="form-check form-switch me-4 flex-shrink-0">
+                                                                        <input class="form-check-input" type="checkbox" role="switch" @bind="permission.CanDelete" />
+                                                                        <label class="form-check-label">Delete</label>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <tr>
+                                                        <td colspan="2" class="text-center text-muted">Loading permissions...</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <!-- Permission table -->
+                                </div>
+
+                                <div class="col-12 text-center mt-2">
+                                    <!-- Dynamic Button Text -->
+                                    <button type="submit" class="btn btn-primary me-1">@(appRoleDto.Id == 0 ? "Submit" : "Update")</button>
+                                    <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-label="Close">
+                                        Discard
+                                    </button>
+                                </div>
+                            </form>
+                            <!--/ Form -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- END: Content-->
+
+<ToastMessage @ref="toastRef" />
+@code {
+    private ToastMessage toastRef { get; set; } = new();
+    private List<AppScreenDto> screenList = new();
+    private AppRoleDto appRoleDto = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            screenList = await screenService.GetAllScreensListAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    private void ToggleSelectAll(ChangeEventArgs e)
+    {
+
+    }
+
+    public void OpenForAdd()
+    {
+        appRoleDto = new AppRoleDto(); // Khali object
+        //InitializeEmptyPermissions();
+        StateHasChanged();
+    }
+
+    // --- 3. Open Modal for EDIT (API se data fetch karega) ---
+    public async Task OpenForEdit(long roleId)
+    {
+        try
+        {
+            // Server se specific role ka data mangwayein
+            // var result = await Http.GetFromJsonAsync<AppRoleDto>($"api/roles/{roleId}");
+            // if (result != null)
+            // {
+            //     appRoleDto = result;
+            // }
+
+            // SyncScreenPermissions();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading role for edit: {ex.Message}");
+        }
+    }
+
+    private void InitializeEmptyPermissions()
+    {
+        appRoleDto.Permissions = screenList.Select(s => new AppRolesScreenDto
+        {
+            ScreenId = s.Id,
+            CanView = false,
+            CanAdd = false,
+            CanEdit = false,
+            CanDelete = false
+        }).ToList();
+    }
+
+    private void SyncScreenPermissions()
+    {
+        foreach (var screen in screenList)
+        {
+            var exists = appRoleDto.Permissions.Any(p => p.ScreenId == screen.Id);
+            if (!exists)
+            {
+                appRoleDto.Permissions.Add(new AppRolesScreenDto
+                {
+                    ScreenId = screen.Id,
+                    CanView = false,
+                    CanAdd = false,
+                    CanEdit = false,
+                    CanDelete = false
+                });
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            var result = await rolesService.SaveOrUpdate(appRoleDto);
+            if (result == 1)
+            {
+                toastRef.Show("User saved successfully!", "success");
+
+                await LoadData();
+                appRoleDto = new();
+            }
+            else if (result == -1)
+            {
+                toastRef.Show("User Name already Exist.", "error");
+            }
+            else
+            {
+                toastRef.Show("Faild to Save.", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+            toastRef.Show($"Error saving role: {ex.Message}", "error");
+        }
+    }
+}

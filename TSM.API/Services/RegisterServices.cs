@@ -20,6 +20,7 @@ namespace TMS.API.Services
             services.AddScoped<ISetupDepartmentService, SetupDepartmentService>();
             services.AddScoped<ISetupDesignationService, SetupDesignationService>();
             services.AddScoped<IAppScreenService, AppScreenService>();
+            services.AddScoped<IAppRolesService, AppRolesService>();
 
             
             return services;
