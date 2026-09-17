@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Mapster;
+using Microsoft.EntityFrameworkCore;
 using TMS.API.Data;
 using TMS.Shared.Enum;
 using TMS.Shared.Model;
+using TMS.Shared.Model.Filters;
 using TSM.API.Data;
 using TSM.API.Services.SetupServices;
 
@@ -9,8 +11,8 @@ namespace TSM.API.Services
 {
     public class AppRolesService : BaseClassService, IAppRolesService
     {
-        private readonly ILogger<SetupDepartmentService> _logger;
-        public AppRolesService(ApplicationDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<SetupDepartmentService> logger) : base(dbContext, configuration, httpContextAccessor)
+        private readonly ILogger<AppRolesService> _logger;
+        public AppRolesService(ApplicationDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<AppRolesService> logger) : base(dbContext, configuration, httpContextAccessor)
         {
             _logger = logger;
         }
@@ -23,15 +25,50 @@ namespace TSM.API.Services
                  .ThenInclude(p => p.ScreenObject) 
                 .AsNoTracking();
         }
-        public async Task<List<AppRole>> GetAllAsync()
+
+        public async Task<List<AppRole>> GetRolesList()
         {
             try
             {
-                return await BaseQuery().ToListAsync();
+                var query = BaseQuery();
+                return await query.ToListAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching all roles.");
+                _logger.LogError(ex, "Error occurred while fetching app roles screens.");
+                throw new Exception(ex.Message);
+            }
+        }
+        public async Task<List<AppRole>> GetAllAsync(FilterModel filters)
+        {
+            try
+            {
+                var query = BaseQuery();
+                if (!string.IsNullOrWhiteSpace(filters?.QueryString))
+                {
+                    var searchTerm = filters.QueryString.Trim();
+                    query = query.Where(x => x.RoleName.Contains(searchTerm));
+                }
+
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while fetching app roles screens.");
+                throw new Exception(ex.Message);
+            }
+        }
+        public async Task<AppRole> GetById(long id)
+        {
+            try
+            {
+                var query = BaseQuery();
+                var data = await query.FirstOrDefaultAsync(x => x.Id == id);
+                return data;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while fetching app roles screens.");
                 throw new Exception(ex.Message);
             }
         }
@@ -41,13 +78,14 @@ namespace TSM.API.Services
 
             try
             {
-                
-                var incomingPermissions = model.Permissions?.ToList() ?? new List<AppRolesScreen>();
+                var incomingPermissions = model.Permissions?
+                    .Where(p => p.CanView || p.CanAdd || p.CanEdit || p.CanDelete)
+                    .ToList() ?? new List<AppRolesScreen>();
+
                 bool isInsert = model.Id == 0;
 
                 if (isInsert)
                 {
-
                     var existing = await dbContext.AppRoles.FirstOrDefaultAsync(x => x.RoleName == model.RoleName);
                     if (existing != null)
                     {
@@ -56,7 +94,7 @@ namespace TSM.API.Services
 
                     model.CreatedBy = base.LoginUserId;
                     model.CreatedOn = DateTime.Now;
-                    model.Permissions = new List<AppRolesScreen>(); 
+                    model.Permissions = new List<AppRolesScreen>();
 
                     await dbContext.AppRoles.AddAsync(model);
                     await dbContext.SaveChangesAsync();
@@ -102,6 +140,7 @@ namespace TSM.API.Services
                     found.UpdatedOn = DateTime.Now;
 
                     var incomingIds = incomingPermissions.Where(p => p.Id > 0).Select(p => p.Id).ToList();
+
                     var permissionsToRemove = found.Permissions
                         .Where(p => !incomingIds.Contains(p.Id))
                         .ToList();
@@ -127,7 +166,6 @@ namespace TSM.API.Services
                             existingPerm.CanAdd = incomingPerm.CanAdd;
                             existingPerm.CanEdit = incomingPerm.CanEdit;
                             existingPerm.CanDelete = incomingPerm.CanDelete;
-                            //existingPerm.CanPrint = incomingPerm.CanPrint;
                         }
                     }
 
@@ -150,20 +188,42 @@ namespace TSM.API.Services
                 await transaction.CommitAsync();
                 return (int)GenericRetureCodeEnum.Success;
             }
-            catch ( Exception ex)
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 throw new Exception(ex.Message);
             }
-            
         }
 
+        public async Task<bool> Delete(long id)
+        {
+            try
+            {
+                var found = await dbContext.AppRoles.FirstOrDefaultAsync(x => x.Id == id);
+                if(found == null)
+                {
+                    return false;
+                }
+                dbContext.AppRoles.Remove(found);
+                await dbContext.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
+        }
 
     }
 
     public interface IAppRolesService
     {
+        Task<List<AppRole>> GetRolesList();
+        Task<List<AppRole>> GetAllAsync(FilterModel filters);
+        Task<AppRole> GetById(long id);
         Task<int> SaveOrUpdate(AppRole model);
-        Task<List<AppRole>> GetAllAsync();
+        Task<bool> Delete(long id);
     }
 }

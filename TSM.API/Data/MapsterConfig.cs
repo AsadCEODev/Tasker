@@ -19,6 +19,15 @@ namespace TSM.API.Data
 
             TypeAdapterConfig<SetupTask, SetupTaskDto>
                 .NewConfig();
+
+            TypeAdapterConfig<AppRolesScreen, AppRolesScreenDto>.NewConfig()
+            .Map(dest => dest.RoleName, src => src.RoleObject != null ? src.RoleObject.RoleName : null) 
+            .Map(dest => dest.ScreenName, src => src.ScreenObject != null ? src.ScreenObject.ScreenName : null);
+
+
+            TypeAdapterConfig<AppUserRole, AppUserRoleDto>.NewConfig()
+            .Map(dest => dest.RoleName, src => src.RoleObject != null ? src.RoleObject.RoleName : null)
+            .Map(dest => dest.FullName, src => src.UserObject != null ? src.UserObject.FullName : null);
         }
     }
 }

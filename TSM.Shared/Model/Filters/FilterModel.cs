@@ -11,6 +11,7 @@ namespace TMS.Shared.Model.Filters
         public DateTime? ToDate { get; set; }
         public string? QueryString { get; set; }
         public long? UserId { get; set; } = 0;
+        public long? RoleId { get; set; } = 0;
         public int? TagId { get; set; }
         public int? StatusId { get; set; }
         public string? IsActive { get; set; } = null;

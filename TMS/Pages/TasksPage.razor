@@ -842,42 +842,6 @@
             toastRef?.Show($"Error preparing task for edit: {ex.Message}", "error");
         }
     }
-    // private void Edit(SetupTaskDto task)
-    // {
-    //     try
-    //     {
-    //         var currentUserTask = task.UserTasks?.FirstOrDefault(ut => ut.UserId == currentUser.Id && ut.TaskId == task.Id);
-
-    //         setupTaskDto = new SetupTaskDto
-    //         {
-    //             Id = task.Id,
-    //             TaskTitle = task.TaskTitle,
-    //             TaskDesc = task.TaskDesc,
-    //             DueDate = task.DueDate,
-    //             TagId = task.TagId,
-    //             ProjectId = task.ProjectId,
-    //             FileName = task.FileName,
-    //             UserFileName = currentUserTask?.UserFileName,
-    //             Remarks = currentUserTask?.Remarks,
-    //             StatusId = task.StatusId,
-    //             Progress = task.Progress,
-    //             IsStart = task.IsStart,
-    //             TaskTime = task.TaskTime
-    //         };
-    //         if (task.UserTasks != null && task.UserTasks.Any())
-    //         {
-    //             selectedIds = task.UserTasks.Select(ut => ut.UserId).ToList();
-    //         }
-    //         else
-    //         {
-    //             selectedIds = new List<long>();
-    //         }
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         toastRef?.Show($"Error preparing task for edit: {ex.Message}", "error");
-    //     }
-    // }
     private async Task Delete()
     {
         try

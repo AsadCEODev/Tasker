@@ -1,0 +1,369 @@
+﻿@page "/AssignRoles"
+@using TMS.Shared.Model
+@using TMS.Shared.Model.Filters
+@using TMS.Shared.Model.Setup
+@using TMS.Shared.Pagination
+@using TMS.ClientServices
+@using TMS.Components
+
+@inject IAppRolesClientService rolesService;
+@inject IUserClientService userService;
+@inject IAppUserRoleClientService userRoleService;
+
+
+<div class="content-wrapper container-xxl-fluid p-0">
+    <div class="content-header row">
+    </div>
+    <div class="content-body">
+        <!-- users list start -->
+        <div class="col-md-3">
+
+            <h3 class="mb-2">Assign Users Role List</h3>
+        </div>
+        <section class="app-Permission-list">
+
+            <!-- list and filter start -->
+            <div class="card">
+
+                <div class="card-body">
+
+                    <!-- Top Toolbar -->
+                    <div class="row align-items-center g-2 mb-3">
+
+                        <div class="col-md-12 d-flex justify-content-end">
+                            
+                                <button class="btn btn-primary text-now0raw"
+                                        data-bs-target="#AssignRoleModal"
+                                        data-bs-toggle="modal">
+                                    <i data-feather="plus" class="me-25"></i> Assign Role
+                                </button>
+
+                        </div>
+                    </div>
+                    <div class="row align-items-center g-2 mb-3">
+                        <div class="col-md-12 ">
+                            <h4 class="card-title mb-0">Search & Filters</h4>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Select Role</label>
+                            <KrSelect2 TItem="AppRoleDto"
+                                       TValue="long?"
+                                       Items="rolePermissionsList"
+                                       ValueSelector="@(u => u.Id)"
+                                       TextSelector="@(u => u.RoleName)"
+                                       @bind-Value="@filters.RoleId" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Select User</label>
+                            <KrSelect2 TItem="SetupUserDto"
+                                       TValue="long?"
+                                       Items="@usersList"
+                                       ValueSelector="@(u => u.Id)"
+                                       TextSelector="@(u => u.ConcatenatedName)"
+                                       @bind-Value="@filters.UserId" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Search:</label>
+                            <input class="form-control"
+                                   style="height: 38px;"
+                                   placeholder="Search..." 
+                                   @bind-value="@filters.QueryString"/>
+                        </div>
+
+                        <div class="col-md-3 mt-3">
+                            
+                            <button class="btn btn-primary " style="height: 35px;" @onclick="OnSearch">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (userRoleList.Data == null)
+                    {
+                        <div class="text-center py-5">
+                           
+                            <div class="spinner-border text-primary" style="width:3rem;height:3rem;" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+
+                            <div class="mt-1 fw-bold">
+                                Loading Data...
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+
+
+                        <!-- Table -->
+                        <div class="card-datatable table-responsive">
+                            <table class="datatables-permissions table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Id</th>
+                                        <th>User Name</th>
+                                        <th>Role Name</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (userRoleList.Data == null || !userRoleList.Data.Any())
+                                    {
+                                        <tr><td colspan="6" class="text-center py-5">No users found.</td></tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var userRole in userRoleList.Data)
+                                        {
+                                            <tr>
+                                                <td><span>@userRole.Id</span></td>
+                                                <td><span>@userRole.FullName</span></td>
+                                                <td><span>@userRole.RoleName</span></td>
+ 
+                                                <td>
+                                                    <button class="btn btn-sm btn-icon-danger btn-outline-danger" @onclick="() => DeleteRecord(userRole.Id)">
+                                                        <i data-feather="trash" class="font-medium-3"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    <!-- Footer -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        @if (userRoleList != null && userRoleList.TotalCount > 0)
+                        {
+
+                            <span class="text-muted">
+                                Showing page @userRoleList.PageIndex of @userRoleList.TotalPages | Total Record : @userRoleList.TotalCount
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No records to display</span>
+                        }
+
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                <!-- Previous Button -->
+                                <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                                    <a class="page-link" @onclick="() => OnPageChanged(currentPage - 1)">‹</a>
+                                </li>
+
+                                <!-- Page Numbers -->
+                                @if (userRoleList != null && userRoleList.TotalPages > 0)
+                                {
+                                    @for (int i = 1; i <= userRoleList.TotalPages; i++)
+                                    {
+                                        int pageNum = i;
+                                        <li class="page-item @(currentPage == pageNum ? "active" : "")">
+                                            <a class="page-link" @onclick="() => OnPageChanged(pageNum)">@pageNum</a>
+                                        </li>
+                                    }
+                                }
+
+                                <!-- Next Button -->
+                                <li class="page-item @(userRoleList == null || currentPage >= userRoleList.TotalPages ? "disabled" : "")">
+                                    <a class="page-link" @onclick="() => OnPageChanged(currentPage + 1)">›</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div> 
+                </div>
+            </div>
+            <!-- list and filter end -->
+        </section>
+        <!-- users list ends -->
+
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="AssignRoleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-add-new-role">
+        <div class="modal-content">
+            <div class="modal-header bg-transparent">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-3 ">
+                <div class="text-center mb-1">
+                    <h1 class="role-title">Assign Role to Users</h1>
+                    <p>Set Role to Useers Accordingly.</p>
+                </div>
+                <EditForm Model="@userRoleDto" OnValidSubmit="Save" class="row gy-1 pt-75">
+                    <DataAnnotationsValidator />
+
+                    <div class="col-md-12 col-sm-6 mb-1">
+                        <label class="form-label">Roles<span class="text-danger">*</span></label>
+                        <KrSelect2 TItem="AppRoleDto"
+                                   TValue="long"
+                                   Items="rolePermissionsList"
+                                   ValueSelector="@(u => u.Id)"
+                                   TextSelector="@(u => u.RoleName)"
+                                   @bind-Value="@userRoleDto.RoleId" />
+                        @* @if (!String.IsNullOrWhiteSpace(departmentError))
+                {
+                    <span class="text-danger small">@departmentError</span>
+                } *@
+                    </div>
+
+                    <div class="mb-1">
+                        <label class="form-label">User<span class="text-danger">*</span></label>
+                        <KrSelect2 TItem="SetupUserDto"
+                                   TValue="long"
+                                   IsMultiple="true"
+                                   Items="@usersList"
+                                   ValueSelector="@(u => u.Id)"
+                                   TextSelector="@(u => u.ConcatenatedName)"
+                                   @bind-Values="selectedIds" />
+
+                        @* @if (!string.IsNullOrEmpty(ErrorMessage))
+                        {
+                            <div class="text-danger">@ErrorMessage</div>
+                        } *@
+                    </div>
+                    <div class="col-12 text-center mt-2">
+                        <button type="submit" class="btn btn-primary me-1">Save</button>
+                        <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-label="Close">
+                            Discard
+                        </button>
+                    </div>
+                </EditForm>
+
+               
+            </div>
+        </div>
+    </div>
+</div>
+
+<ToastMessage @ref="toastRef" />
+
+@code {
+    private List<AppRoleDto> rolePermissionsList = new();
+    private AppUserRoleDto userRoleDto { get; set; } = new();
+    private PaginationResponse<AppUserRoleDto> userRoleList { get; set; } = new();
+    public SetupUserDto userDto { get; set; } = new();
+    private List<SetupUserDto> usersList = new();
+    private List<long> selectedIds = new();
+    private ToastMessage toastRef { get; set; } = new();
+    private FilterModel filters { get; set; } = new();
+    private int currentPage = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadData();
+            await LoadLists();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+
+    }
+
+
+    private async Task LoadData()
+    {
+        try
+        {
+            var data = await userRoleService.GetAll(filters);
+            if (data.Data != null)
+            {
+                userRoleList = data;
+            }
+        }
+        catch (Exception ex)
+        {
+            toastRef.Show($"Error: {ex.Message}", "error");
+
+        }
+    }
+
+    private async Task LoadLists()
+    {
+        try
+        {
+
+
+            rolePermissionsList = await rolesService.GetRolesList();
+            usersList = await userService.GetUsersList();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    private async Task Save()
+    {
+        try
+        {
+            userRoleDto.UserIds = selectedIds ?? new();
+            var result = await userRoleService.SaveOrUpdate(userRoleDto);
+            if (result)
+            {
+                toastRef.Show("Users Role saved successfully!", "success");
+                await CloseModel();
+                await LoadData();
+            }
+            else
+            {
+                toastRef?.Show("Operation Failed.", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+
+            toastRef.Show($"Error: {ex.Message}", "error");
+        }
+    }
+
+    private async Task OnPageChanged(int newPage)
+    {
+        if (newPage <= 0 || (userRoleList != null && newPage > userRoleList.TotalPages))
+            return;
+
+        currentPage = newPage;
+        filters.PageNumber = currentPage; 
+        await LoadData();
+    }
+
+    private async Task CloseModel()
+    {
+        userRoleDto = new();
+        selectedIds.Clear();
+        StateHasChanged();
+    }
+    private async Task OnSearch()
+    {
+        currentPage = 1;
+        filters.PageNumber = 1;
+        await LoadData();
+    }
+
+    private async Task DeleteRecord(long id)
+    {
+        try
+        {
+            var result = await userRoleService.DeleteAsync(id);
+            if (result)
+            {
+                toastRef.Show("Role UnAssigned from User successfully!", "success");
+                await LoadData();
+            }
+            else
+            {
+                toastRef?.Show("Operation Failed.", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+
+            toastRef.Show($"Error: {ex.Message}", "error");
+        }
+    }
+}

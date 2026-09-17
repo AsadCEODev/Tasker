@@ -55,9 +55,34 @@
                             <i data-feather="folder-plus"></i><span>Assign Project</span>
                         </NavLink>
                     </li>
+                  
+
+                </ul>
+
+            </li>
+            <li class="nav-item has-sub @(rolesAndPermissions ? "open" : "")">
+
+                <a href="#"
+                   class="d-flex align-items-center"
+                   @onclick="ToggleRolesAndPermissions"
+                   @onclick:preventDefault="true">
+
+                    <i data-feather="shield"></i>
+                    <span>Roles & Permissions</span>
+                </a>
+
+                <ul class="menu-content"
+                    style="display:@(rolesAndPermissions ? "block" : "none")">
+
+                   
                     <li>
                         <NavLink href="/RolesPage">
-                            <i data-feather="shield"></i><span>Create Roles</span>
+                            <i data-feather="circle"></i><span>Setup Roles</span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink href="/AssignRoles">
+                            <i data-feather="circle"></i><span>Assign Roles</span>
                         </NavLink>
                     </li>
 
@@ -106,6 +131,7 @@
 @code {
 
     bool settingsOpen;
+    bool rolesAndPermissions;
     bool chatOpen;
 
     void ToggleSettings()
@@ -118,5 +144,9 @@
         chatOpen = !chatOpen;
 
     }
+    void ToggleRolesAndPermissions()
+    {
+        rolesAndPermissions = !rolesAndPermissions;
 
+    }
 }

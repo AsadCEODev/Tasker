@@ -38,7 +38,7 @@ namespace TMS.Shared.Model.Setup
         public string HashPassword { get; set; } = string.Empty;
 
         public bool IsActive { get; set; } = false;
-
+        public string? ProfileImagePath { get; set; } = string.Empty; 
         [MaxLength(50)]
         public string CreatedBy { get; set; } = string.Empty;
 
@@ -93,6 +93,22 @@ namespace TMS.Shared.Model.Setup
         public string ConfirmPassword { get; set; } = string.Empty;
 
         public bool IsActive { get; set; } = true;
+        public string? ProfileImagePath { get; set; } = string.Empty;
+        [NotMapped]
+        public string ConcatenatedName
+        {
+            get
+            {
+                string departmentName = DepartmentObj?.DepartmentName ?? string.Empty;
+
+                if (!string.IsNullOrEmpty(FullName) && !string.IsNullOrEmpty(departmentName))
+                {
+                    return $"{Id}-{FullName}-{departmentName}";
+                }
+
+                return $"{Id}-{FullName}";
+            }
+        }
     }
     public class UserSummary
     {

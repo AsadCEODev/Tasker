@@ -26,6 +26,7 @@ builder.Services.AddScoped<IDepartmentsClientService, DepartmentsClientService>(
 builder.Services.AddScoped<IDesignationsClientService, DesignationsClientService>();
 builder.Services.AddScoped<IAppScreenClientService, AppScreenClientService>();
 builder.Services.AddScoped<IAppRolesClientService, AppRolesClientService>();
+builder.Services.AddScoped<IAppUserRoleClientService, AppUserRoleClientService>();
 builder.Services.AddSingleton<ActiveTaskTimerService>();
 builder.Services.AddScoped<UserStateService>();
 

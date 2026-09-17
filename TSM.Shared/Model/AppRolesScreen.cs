@@ -26,12 +26,15 @@ namespace TMS.Shared.Model
     {
         public long Id { get; set; }
         public long RoleId { get; set; }
+        public string? RoleName { get; set; }
         public int ScreenId { get; set; }
-        public bool CanView { get; set; } = false;
-        public bool CanAdd { get; set; } = false;
-        public bool CanEdit { get; set; } = false;
-        public bool CanDelete { get; set; } = false;
+        public string? ScreenName { get; set; }
+
+        public bool CanView { get; set; }
+        public bool CanAdd { get; set; }
+        public bool CanEdit { get; set; }
+        public bool CanDelete { get; set; }
     }
 
-   
+
 }

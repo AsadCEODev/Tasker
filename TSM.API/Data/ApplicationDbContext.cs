@@ -57,6 +57,7 @@ namespace TMS.API.Data
         public DbSet<AppRole> AppRoles { get; set; }
         public DbSet<AppRolesScreen> AppRolesScreens { get; set; }
         public DbSet<AppScreen> AppScreens { get; set; }
+        public DbSet<AppUserRole> AppUserRoles { get; set; }
 
         public async Task<T> QueryFirstOrDefaultAsync<T>(string procedureName, Dictionary<string, object> parameters = null) where T : class, new()
         {
