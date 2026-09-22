@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TMS.Shared.Model;
 using TMS.Shared.Model.Filters;
+using TMS.Shared.Model.Setup;
 using TMS.Shared.Pagination;
 using TSM.API.Services;
 
@@ -17,6 +18,45 @@ namespace TSM.API.Controllers
         public AppUserRoleController(IAppUserRoleService appUserRoleService)
         {
             thisService = appUserRoleService;
+        }
+
+        [HttpPost("GetUnAssignedUsersList")]
+        public async Task<IActionResult> GetUnAssignedUsersList(FilterModel filter)
+        {
+            try
+            {
+                var lst = await thisService.GetUnAssignedUsersList( filter);
+                if(lst == null)
+                {
+                    return NotFound(new());
+                }
+                var converted = lst.Adapt<List<AppUsersListDto>>();
+                return Ok(converted);
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
+        }
+
+        [HttpPost("GetAssignedUsersList")]
+        public async Task<IActionResult> GetAssignedUsersList(FilterModel filter)
+        {
+            try
+            {
+                var data = await thisService.GetSelelctedUsers(filter);
+                if(data == null)
+                {
+                    return NotFound(new());
+                }
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
         }
 
         [HttpPost("GetAll")]

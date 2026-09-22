@@ -7,7 +7,7 @@ namespace TMS.ClientServices.StateUser
     public class UserStateService
     {
         private readonly HttpClient _http;
-        private SetupUser? _cachedUser;
+        private SetupUserDto? _cachedUser;
         private bool _isLoaded = false;
 
         public UserStateService(HttpClient http)
@@ -15,7 +15,7 @@ namespace TMS.ClientServices.StateUser
             _http = http;
         }
 
-        public async Task<SetupUser?> GetCurrentUserAsync()
+        public async Task<SetupUserDto?> GetCurrentUserAsync()
         {
             if (_isLoaded && _cachedUser != null)
             {
@@ -27,7 +27,7 @@ namespace TMS.ClientServices.StateUser
                 var response = await _http.GetAsync("api/auth/GetCurrentUserInfo");
                 if (response.IsSuccessStatusCode)
                 {
-                    _cachedUser = await response.Content.ReadFromJsonAsync<SetupUser>();
+                    _cachedUser = await response.Content.ReadFromJsonAsync<SetupUserDto>();
                     _isLoaded = true;
                 }
             }

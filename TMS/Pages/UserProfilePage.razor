@@ -1,0 +1,306 @@
+﻿@page "/UserProfilePage"
+@using TMS.Shared.Model.Setup
+@using TMS.Shared.AppConstants
+@using TMS.ClientServices.StateUser
+@using TMS.ClientServices
+@using TMS.Components
+@using System.IO
+
+@inject IUserClientService userService
+@inject UserStateService UserState
+
+<div class=" ">
+    <div class="content-overlay"></div>
+    <div class="header-navbar-shadow"></div>
+    <div class="content-wrapper container-xxl p-0">
+        <div class="content-header row">
+        </div>
+        <div class="content-body">
+            <section class="app-user-view-account">
+                <div class="row">
+                    <!-- User Sidebar -->
+                    <div class="col-xl-4 col-lg-5 col-md-5 order-1 order-md-0">
+                        <!-- User Card -->
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="user-avatar-section">
+                                    <div class="d-flex align-items-center flex-column">
+                                        <!-- Dynamic Preview Image in Sidebar -->
+                                        <img class="img-fluid rounded mt-3 mb-2"
+                                             src="@(!string.IsNullOrEmpty(previewImageUrl) ? previewImageUrl : (!string.IsNullOrEmpty(userDto.ProfileImagePath) ? $"/Files/{userDto.ProfileImagePath}" : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(userDto.FullName ?? "User")}&background=random&color=fff&size=128"))"
+                                             height="110" width="110" alt="User avatar" style="object-fit: cover;" />
+                                        <div class="user-info text-center">
+                                            <h4>@userDto.FullName</h4>
+                                            <span class="badge bg-light-secondary">@userDto.DepartmentObj?.DepartmentName</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-around my-2 pt-75">
+                                    <div class="d-flex align-items-start me-2">
+                                        <span class="badge bg-light-primary p-75 rounded">
+                                            <i data-feather="check" class="font-medium-2"></i>
+                                        </span>
+                                        <div class="ms-75">
+                                            <h4 class="mb-0">1.23k</h4>
+                                            <small>Tasks Done</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <h4 class="fw-bolder border-bottom pb-50 mb-1">Details</h4>
+                                <div class="info-container">
+                                    <ul class="list-unstyled">
+                                        <li class="mb-75">
+                                            <span class="fw-bolder me-25">Username:</span>
+                                            <span>@userDto.UserName</span>
+                                        </li>
+                                        <li class="mb-75">
+                                            <span class="fw-bolder me-25">Email:</span>
+                                            <span>@userDto.Email</span>
+                                        </li>
+                                        <li class="mb-75">
+                                            <span class="fw-bolder me-25">Status:</span>
+                                            <span class="badge bg-light-success">Active</span>
+                                        </li>
+                                        <li class="mb-75">
+                                            <span class="fw-bolder me-25">Department:</span>
+                                            <span>@userDto.DepartmentObj?.DepartmentName</span>
+                                        </li>
+                                        <li class="mb-75">
+                                            <span class="fw-bolder me-25">Designation:</span>
+                                            <span>@userDto.DesignationObj?.DesignationName</span>
+                                        </li>
+                                        <li class="mb-75">
+                                            <span class="fw-bolder me-25">Contact:</span>
+                                            <span>@userDto.PhoneNo</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /User Card -->
+                    </div>
+                    <!--/ User Sidebar -->
+                    <!-- User Content -->
+                    <div class="col-xl-8 col-lg-7 col-md-7 order-0 order-md-1">
+                        <!-- User Pills -->
+                        <ul class="nav nav-pills mb-2">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="app-user-view-account.html">
+                                    <i data-feather="user" class="font-medium-3 me-50"></i>
+                                    <span class="fw-bold">Account</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="app-user-view-security.html">
+                                    <i data-feather="lock" class="font-medium-3 me-50"></i>
+                                    <span class="fw-bold">Security</span>
+                                </a>
+                            </li>
+                        </ul>
+                        <!--/ User Pills -->
+                        <!-- Project table -->
+                        <div class="card">
+                            <h4 class="card-header">User's Information Form</h4>
+
+                            <EditForm Model="@userDto" OnSubmit="UpdateProfile" class="row gy-1 pt-75 p-3">
+                                <DataAnnotationsValidator />
+
+                                <!-- User Name -->
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="modalUserName">User Name <span class="text-danger">*</span></label>
+                                    <InputText id="modalUserName" class="form-control" @bind-Value="userDto.UserName" disabled="true" placeholder="Enter username" />
+                                    <ValidationMessage For="@(() => userDto.UserName)" class="text-danger small" />
+                                </div>
+
+                                <!-- Full Name -->
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="modalFullName">Full Name <span class="text-danger">*</span></label>
+                                    <InputText id="modalFullName" class="form-control" @bind-Value="userDto.FullName" placeholder="Enter full name" />
+                                    <ValidationMessage For="@(() => userDto.FullName)" class="text-danger small" />
+                                </div>
+
+                                <!-- Father Name -->
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="modalFatherName">Father Name <span class="text-danger">*</span></label>
+                                    <InputText id="modalFatherName" class="form-control" @bind-Value="userDto.FatherName" placeholder="Enter father name" />
+                                    <ValidationMessage For="@(() => userDto.FatherName)" class="text-danger small" />
+                                </div>
+
+                                <!-- Phone -->
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="modalPhone">Cell No <span class="text-danger">*</span></label>
+                                    <InputText id="modalPhone" class="form-control" @bind-Value="userDto.PhoneNo" />
+                                    <ValidationMessage For="@(() => userDto.PhoneNo)" class="text-danger small" />
+                                </div>
+
+                                <!-- CNIC -->
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="modalCnic">NIC/Passport <span class="text-danger">*</span></label>
+                                    <InputText id="modalCnic" class="form-control" @bind-Value="userDto.CNIC" />
+                                    <ValidationMessage For="@(() => userDto.CNIC)" class="text-danger small" />
+                                </div>
+
+                                <!-- Email -->
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="modalEmail">Email <span class="text-danger">*</span></label>
+                                    <InputText id="modalEmail" class="form-control" @bind-Value="userDto.Email" placeholder="example@domain.com" />
+                                    <ValidationMessage For="@(() => userDto.Email)" class="text-danger small" />
+                                </div>
+
+                                <div class="col-12 my-3">
+                                    <div class="profile-img-box mb-2 position-relative"
+                                         style="width: 120px; height: 120px; border: 2px dashed #ced4da; display: inline-flex; align-items: center; justify-content: center; overflow: hidden; background-color: #f8f9fa;">
+
+                                        @if (!string.IsNullOrEmpty(previewImageUrl))
+                                        {
+                                            <!-- Newly selected image -->
+                                            <img src="@previewImageUrl"
+                                                 alt="Profile Preview"
+                                                 style="width: 100%; height: 100%; object-fit: cover;" />
+                                        }
+                                        else if (!string.IsNullOrEmpty(userDto.ProfileImagePath))
+                                        {
+                                            <!-- Image coming from DB -->
+                                            <img src="@GetProfileImageUrl()"
+                                                 alt="Profile"
+                                                 style="width: 100%; height: 100%; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">Upload Photo</span>
+                                        }
+                                    </div>
+
+                                    @if (!string.IsNullOrEmpty(previewImageUrl) ||
+                                         !string.IsNullOrEmpty(userDto.ProfileImagePath))
+                                    {
+                                        <div class="mb-2">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    @onclick="RemoveImage">
+                                                <i data-feather="trash-2"></i> Remove Picture
+                                            </button>
+                                        </div>
+                                    }
+
+                                    <div>
+                                        <InputFile OnChange="OnImageSelected"
+                                                   class="form-control form-control-sm w-50"
+                                                   accept="image/*" />
+                                    </div>
+                                </div>
+
+                                <!-- Form Buttons -->
+                                <div class="col-12 text-center mt-2 pt-50">
+                                    <button type="submit" class="btn btn-primary me-1">
+                                        Update
+                                    </button>
+                                </div>
+                            </EditForm>
+                        </div>
+                        <!-- /Project table -->
+                    </div>
+                    <!--/ User Content -->
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+<!-- END: Content-->
+
+<ToastMessage @ref="toastRef" />
+
+@code {
+    private SetupUserDto userDto { get; set; } = new();
+    private ToastMessage toastRef { get; set; } = new();
+    private string previewImageUrl;
+    private IBrowserFile selectedImageFile;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCurrentUserInfo();
+    }
+
+    private async Task GetCurrentUserInfo()
+    {
+        try
+        {
+            userDto = await UserState.GetCurrentUserAsync();
+            previewImageUrl = null; // Reset preview on refresh
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            toastRef.Show($"Error: {ex.Message}", "error");
+        }
+    }
+
+    // Image select hone par foran browser mein preview dikhane ke liye
+    private async Task OnImageSelected(InputFileChangeEventArgs e)
+    {
+        selectedImageFile = e.File;
+        if (selectedImageFile != null)
+        {
+            const long maxAllowedSize = 2 * 1024 * 1024; // 2MB limit
+
+            using var stream = selectedImageFile.OpenReadStream(maxAllowedSize);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+
+            var base64Data = Convert.ToBase64String(memoryStream.ToArray());
+            previewImageUrl = $"data:{selectedImageFile.ContentType};base64,{base64Data}";
+        }
+    }
+
+    private async Task UpdateProfile()
+    {
+        try
+        {
+            userDto.ConfirmPassword = userDto.HashPassword;
+
+            // Saari file handling aur update request ab Client Service handle karegi
+            int result = await userService.UpdateAsync(userDto, selectedImageFile);
+
+            if (result == 1)
+            {
+                toastRef.Show("Profile updated successfully!", "success");
+                selectedImageFile = null; // Clear selected file reference
+                previewImageUrl = null;   // Clear preview
+                await GetCurrentUserInfo();
+             
+            }
+            else if (result == -1)
+            {
+                toastRef.Show("Failed to Save.", "error");
+            }
+            else
+            {
+                toastRef.Show("Failed to Save.", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+            toastRef.Show($"Error: {ex.Message}", "error");
+        }
+    }
+
+    private void RemoveImage()
+    {
+        previewImageUrl = null;
+        selectedImageFile = null;
+        userDto.ProfileImagePath = string.Empty; // Database mein empty save ho jayega
+        StateHasChanged();
+    }
+
+    private string GetProfileImageUrl()
+    {
+        if (!string.IsNullOrWhiteSpace(userDto?.ProfileImagePath))
+        {
+            var cleanPath = userDto.ProfileImagePath.TrimStart('/');
+            return $"/Files/{cleanPath}";
+        }
+
+        // Fallback UI Avatar
+        return $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(userDto?.FullName ?? "User")}&background=random&color=fff&size=128";
+    }
+}

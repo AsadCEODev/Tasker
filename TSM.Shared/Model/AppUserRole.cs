@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Globalization;
 using System.Text;
 using TMS.Shared.Model.Setup;
 
@@ -35,6 +36,10 @@ namespace TMS.Shared.Model
         public DateTime? CreatedOn { get; set; } = DateTime.Now;
         public long? UpdatedBy { get; set; } = null;
         public DateTime? UpdatedOn { get; set; } = null;
-        
+
     }
+
+
+
+
 }

@@ -1,19 +1,24 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.EntityFrameworkCore;
 using TMS.API.Data;
+using TMS.Shared.AppConstants;
 using TMS.Shared.Model.Filters;
 using TMS.Shared.Model.Setup;
 using TMS.Shared.Pagination;
+using TSM.API.Data;
 
 namespace TMS.API.Services.SetupServices
 {
-    public class SetupUserService: ISetupUserService
+    public class SetupUserService: BaseClassService,ISetupUserService
     {
-        private readonly ApplicationDbContext dbContext;
-        public SetupUserService(ApplicationDbContext dbContext)
-        {
-            this.dbContext = dbContext;
-        }
+        
 
+        private readonly ILogger<TaskService> _logger;
+        public SetupUserService(ApplicationDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<TaskService> logger) : base(dbContext, configuration, httpContextAccessor)
+        {
+
+            _logger = logger;
+        }
         private IQueryable<SetupUser> BaseQuery()
         {
             var query = dbContext.SetupUsers
@@ -174,11 +179,113 @@ namespace TMS.API.Services.SetupServices
                 existingUser.IsActive = model.IsActive;
                 existingUser.DepartmentId = model.DepartmentId;
                 existingUser.DesignationId = model.DesignationId;
+                existingUser.ProfileImagePath = model.ProfileImagePath;
                 existingUser.UpdatedBy = model.UpdatedBy;
                 existingUser.UpdatedOn = DateTime.Now;
 
                 await dbContext.SaveChangesAsync();
-                return 1; 
+                return 1;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<int> UpdateProfile(SetupUser model, IFormFile? imageFile)
+        {
+            try
+            {
+                var existingUser = await dbContext.SetupUsers
+                    .FirstOrDefaultAsync(u => u.Id == model.Id);
+
+                if (existingUser == null)
+                {
+                    return -1;
+                }
+
+                // Old image ka path save kar lein
+                var oldFileName = existingUser.ProfileImagePath;
+
+                if (imageFile != null)
+                {
+                    // Files folder create karein agar exist nahi karta
+                    if (!Directory.Exists(AppConstants.FilePath))
+                    {
+                        Directory.CreateDirectory(AppConstants.FilePath);
+                    }
+
+                    // Unique filename
+                    var extension = Path.GetExtension(imageFile.FileName);
+                    var uniqueFileName = $"{Guid.NewGuid()}{extension}";
+
+                    var physicalPath = Path.Combine(
+                        AppConstants.FilePath,
+                        uniqueFileName);
+
+                    // New image save
+                    await using (var fileStream = new FileStream(
+                        physicalPath,
+                        FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(fileStream);
+                    }
+
+                    // DB mein new filename
+                    existingUser.ProfileImagePath = uniqueFileName;
+
+                    // Purani image delete
+                    if (!string.IsNullOrWhiteSpace(oldFileName))
+                    {
+                        var oldPhysicalPath = Path.Combine(
+                            AppConstants.FilePath,
+                            oldFileName);
+
+                        if (File.Exists(oldPhysicalPath))
+                        {
+                            File.Delete(oldPhysicalPath);
+                        }
+                    }
+                }
+                else
+                {
+                    // =================================================
+                    // FILE SELECT NAHI KI
+                    // Purani image delete karein
+                    // =================================================
+
+                    if (!string.IsNullOrWhiteSpace(oldFileName))
+                    {
+                        var oldPhysicalPath = Path.Combine(
+                            AppConstants.FilePath,
+                            oldFileName);
+
+                        if (File.Exists(oldPhysicalPath))
+                        {
+                            File.Delete(oldPhysicalPath);
+                        }
+                    }
+
+                    // DB se filename remove
+                    existingUser.ProfileImagePath = null;
+                }
+
+                // =====================================================
+                // USER INFORMATION
+                // =====================================================
+
+                existingUser.FullName = model.FullName;
+                existingUser.PhoneNo = model.PhoneNo;
+                existingUser.Email = model.Email;
+                existingUser.IsActive = model.IsActive;
+                existingUser.DepartmentId = model.DepartmentId;
+                existingUser.DesignationId = model.DesignationId;
+                existingUser.UpdatedBy = LoginUserName;
+                existingUser.UpdatedOn = DateTime.Now;
+
+                await dbContext.SaveChangesAsync();
+
+                return 1;
             }
             catch (Exception ex)
             {
@@ -254,6 +361,7 @@ namespace TMS.API.Services.SetupServices
         Task<SetupUser> GetById(long id);
         Task<int> Save(SetupUser model);
         Task<int> Update(SetupUser model);
+        Task<int> UpdateProfile(SetupUser model, IFormFile imageFile);
         Task<bool> Delete(long id);
         Task<bool> UpdatePassword(long userId, string newPassword);
         Task<UserSummary> GetUsersSummary();

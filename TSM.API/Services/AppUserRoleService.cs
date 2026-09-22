@@ -2,6 +2,7 @@
 using TMS.API.Data;
 using TMS.Shared.Model;
 using TMS.Shared.Model.Filters;
+using TMS.Shared.Model.Setup;
 using TMS.Shared.Pagination;
 using TSM.API.Data;
 using TSM.API.Services.SetupServices;
@@ -19,7 +20,7 @@ namespace TSM.API.Services
 
         private IQueryable<AppUserRole> BaseQuery()
         {
-            
+
             var query = dbContext.AppUserRoles
                 .Include(x => x.UserObject)
                 .Include(y => y.RoleObject)
@@ -28,7 +29,53 @@ namespace TSM.API.Services
             return query;
         }
 
+        public async Task<List<AppUsersList>> GetUnAssignedUsersList(FilterModel filter)
+        {
+            try
+            {
+                var query = dbContext.SetupUsers.AsQueryable();
 
+                if (filter != null && filter.RoleId > 0)
+                {
+                    query = query.Where(x =>
+                        !dbContext.AppUserRoles.Any(y => y.UserId == x.Id) ||
+                        dbContext.AppUserRoles.Any(y => y.UserId == x.Id && y.RoleId == filter.RoleId)
+                    );
+                }
+                else
+                {
+                    query = query.Where(x => !dbContext.AppUserRoles.Any(y => y.UserId == x.Id));
+                }
+
+                var unAssignedUsersList = await query
+                    .Select(x => new AppUsersList
+                    {
+                        UserId = x.Id,
+                        UserName = x.FullName + "-" + (x.DepartmentObj != null ? x.DepartmentObj.DepartmentName : "No Dept")
+                    })
+                    .ToListAsync();
+
+                return unAssignedUsersList;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+
+        public async Task<List<long>> GetSelelctedUsers(FilterModel filter)
+        {
+            try
+            {
+                var lst = await dbContext.AppUserRoles.Where(x => x.RoleId == filter.RoleId).Select(y => y.UserId).ToListAsync();
+                return lst;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
 
         public async Task<PaginationResponse<AppUserRole>> GetAll(FilterModel filters)
         {
@@ -36,7 +83,7 @@ namespace TSM.API.Services
             {
                 var query = BaseQuery();
 
-                
+
 
                 if (filters.RoleId.HasValue && filters.RoleId.Value > 0)
                 {
@@ -126,7 +173,7 @@ namespace TSM.API.Services
             try
             {
                 var found = await dbContext.AppUserRoles.FirstOrDefaultAsync(x => x.Id == id);
-                if( found == null)
+                if (found == null)
                 {
                     return false;
                 }
@@ -145,6 +192,8 @@ namespace TSM.API.Services
 
     public interface IAppUserRoleService
     {
+        Task<List<AppUsersList>> GetUnAssignedUsersList(FilterModel filter);
+        Task<List<long>> GetSelelctedUsers(FilterModel filter);
         Task<PaginationResponse<AppUserRole>> GetAll(FilterModel filters);
         Task<bool> SaveOrUpdateUsersRoleAsync(AppUserRole model);
         Task<bool> Delete(long id);

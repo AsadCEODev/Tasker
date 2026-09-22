@@ -92,7 +92,7 @@ namespace TMS.Shared.Model.Setup
         [NotMapped]
         public string ConfirmPassword { get; set; } = string.Empty;
 
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = false;
         public string? ProfileImagePath { get; set; } = string.Empty;
         [NotMapped]
         public string ConcatenatedName
@@ -135,5 +135,17 @@ namespace TMS.Shared.Model.Setup
         public string FullName { get; set; } = string.Empty;
 
         public string Token { get; set; } = string.Empty;
+    }
+
+    public class AppUsersList
+    {
+        public long UserId { get; set; } = 0;
+        public string? UserName { get; set; } = null;
+    }
+
+    public class AppUsersListDto
+    {
+        public long UserId { get; set; } = 0;
+        public string? UserName { get; set; } = null;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Mapster;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TMS.API.Services.SetupServices;
@@ -112,6 +113,36 @@ namespace TMS.API.Controllers
                 return StatusCode(500, "An internal error occurred.");
             }
         }
+
+        [HttpPost("UpdateProfile")]
+        public async Task<IActionResult> UpdateProfile([FromForm] SetupUserDto dto, IFormFile? imageFile)
+        {
+            try
+            {
+                if (dto == null)
+                    return BadRequest("User data is required.");
+
+                // Mapster ya Manual mapping ke zariye DTO ko Entity mein convert karein
+                var converted = dto.Adapt<SetupUser>();
+
+                // Service layer ko dto aur IFormFile pass karein
+                var result = await thisService.UpdateProfile(converted, imageFile);
+
+                if (result == -1)
+                    return Conflict("User Name already exists."); // 409 Conflict
+
+                if (result != 1)
+                    return BadRequest("Failed to update user.");
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An internal error occurred: {ex.Message}");
+            }
+        }
+    
+        
 
         [HttpDelete("Delete")]
         public async Task<IActionResult> Delete(int id)

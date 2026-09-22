@@ -739,7 +739,7 @@
     private CancellationTokenSource? _timerCts;
     private bool isTaskStarted => TimerService.ActiveTaskId == setupTaskDto.Id;
     private TimeSpan elapsedtime => TimerService.GetElapsedTime(setupTaskDto.Id, GetStoredTimeSpan());
-    private SetupUser? currentUser;
+    private SetupUserDto? currentUser;
 }
 
 @code {

@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using System.Net.Http.Json;
 using TMS.Shared.Model.Filters;
 using TMS.Shared.Model.Setup;
 using TMS.Shared.Pagination;
@@ -102,6 +103,59 @@ namespace TMS.ClientServices
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<int> UpdateAsync(SetupUserDto model, IBrowserFile? imageFile)
+        {
+            try
+            {
+                using var content = new MultipartFormDataContent();
+
+                content.Add(new StringContent(model.Id.ToString()), "Id");
+                content.Add(new StringContent(model.UserName ?? ""), "UserName");
+                content.Add(new StringContent(model.FullName ?? ""), "FullName");
+                content.Add(new StringContent(model.FatherName ?? ""), "FatherName");
+                content.Add(new StringContent(model.PhoneNo ?? ""), "PhoneNo");
+                content.Add(new StringContent(model.CNIC ?? ""), "CNIC");
+                content.Add(new StringContent(model.Email ?? ""), "Email");
+
+                content.Add(new StringContent(model.DepartmentId.ToString()), "DepartmentId");
+
+                content.Add(new StringContent(model.DesignationId.ToString()), "DesignationId" );
+
+                content.Add(new StringContent(model.IsActive.ToString()),"IsActive" );
+
+                content.Add(new StringContent(model.ProfileImagePath ?? ""),"ProfileImagePath");
+
+                content.Add( new StringContent(model.HashPassword ?? ""), "HashPassword");
+
+                content.Add(new StringContent(model.ConfirmPassword ?? ""),"ConfirmPassword");
+
+                if (imageFile != null)
+                {
+                    var memoryStream = new MemoryStream();
+                    await imageFile.OpenReadStream(1024 * 1024 * 10).CopyToAsync(memoryStream);
+                    memoryStream.Position = 0; // Reset stream position back to start
+
+                    content.Add(new StreamContent(memoryStream), "imageFile", imageFile.Name);
+                }
+
+                var response = await httpClient.PostAsync($"{baseUrl}/UpdateProfile", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<int>();
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(
+                    $"Client Service Error: {ex.Message}",
+                    ex
+                );
+            }
+        }
         public async Task<bool> Delete(long id)
         {
             try
@@ -152,5 +206,6 @@ namespace TMS.ClientServices
         Task<int> Update(SetupUserDto setupUserDto);
         Task<bool> Delete(long id);
         Task<UserSummary?> GetUsersSummary();
+        Task<int> UpdateAsync(SetupUserDto model, IBrowserFile imageFile);
     }
 }

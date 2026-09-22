@@ -31,12 +31,13 @@
                     <div class="row align-items-center g-2 mb-3">
 
                         <div class="col-md-12 d-flex justify-content-end">
-                            
-                                <button class="btn btn-primary text-now0raw"
-                                        data-bs-target="#AssignRoleModal"
-                                        data-bs-toggle="modal">
-                                    <i data-feather="plus" class="me-25"></i> Assign Role
-                                </button>
+
+                            <button class="btn btn-primary text-now0raw"
+                                    data-bs-target="#AssignRoleModal"
+                                    data-bs-toggle="modal"
+                                    @onclick="OpenAssignModal">
+                                <i data-feather="plus" class="me-25"></i> Assign Role
+                            </button>
 
                         </div>
                     </div>
@@ -66,12 +67,12 @@
                             <label class="form-label">Search:</label>
                             <input class="form-control"
                                    style="height: 38px;"
-                                   placeholder="Search..." 
-                                   @bind-value="@filters.QueryString"/>
+                                   placeholder="Search..."
+                                   @bind-value="@filters.QueryString" />
                         </div>
 
                         <div class="col-md-3 mt-3">
-                            
+
                             <button class="btn btn-primary " style="height: 35px;" @onclick="OnSearch">
                                 Search
                             </button>
@@ -81,7 +82,7 @@
                     @if (userRoleList.Data == null)
                     {
                         <div class="text-center py-5">
-                           
+
                             <div class="spinner-border text-primary" style="width:3rem;height:3rem;" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
@@ -119,7 +120,7 @@
                                                 <td><span>@userRole.Id</span></td>
                                                 <td><span>@userRole.FullName</span></td>
                                                 <td><span>@userRole.RoleName</span></td>
- 
+
                                                 <td>
                                                     <button class="btn btn-sm btn-icon-danger btn-outline-danger" @onclick="() => DeleteRecord(userRole.Id)">
                                                         <i data-feather="trash" class="font-medium-3"></i>
@@ -171,7 +172,7 @@
                                 </li>
                             </ul>
                         </nav>
-                    </div> 
+                    </div>
                 </div>
             </div>
             <!-- list and filter end -->
@@ -202,7 +203,8 @@
                                    Items="rolePermissionsList"
                                    ValueSelector="@(u => u.Id)"
                                    TextSelector="@(u => u.RoleName)"
-                                   @bind-Value="@userRoleDto.RoleId" />
+                                   @bind-Value="@userRoleDto.RoleId"
+                                   @bind-Value:after="OnRoleChanged" />
                         @* @if (!String.IsNullOrWhiteSpace(departmentError))
                 {
                     <span class="text-danger small">@departmentError</span>
@@ -211,12 +213,12 @@
 
                     <div class="mb-1">
                         <label class="form-label">User<span class="text-danger">*</span></label>
-                        <KrSelect2 TItem="SetupUserDto"
+                        <KrSelect2 TItem="AppUsersListDto"
                                    TValue="long"
                                    IsMultiple="true"
-                                   Items="@usersList"
-                                   ValueSelector="@(u => u.Id)"
-                                   TextSelector="@(u => u.ConcatenatedName)"
+                                   Items="@unAssignedUsersList"
+                                   ValueSelector="@(u => u.UserId)"
+                                   TextSelector="@(u => u.UserName)"
                                    @bind-Values="selectedIds" />
 
                         @* @if (!string.IsNullOrEmpty(ErrorMessage))
@@ -246,6 +248,7 @@
     private PaginationResponse<AppUserRoleDto> userRoleList { get; set; } = new();
     public SetupUserDto userDto { get; set; } = new();
     private List<SetupUserDto> usersList = new();
+    private List<AppUsersListDto> unAssignedUsersList = new();
     private List<long> selectedIds = new();
     private ToastMessage toastRef { get; set; } = new();
     private FilterModel filters { get; set; } = new();
@@ -274,6 +277,7 @@
             if (data.Data != null)
             {
                 userRoleList = data;
+                await LoadLists();
             }
         }
         catch (Exception ex)
@@ -291,6 +295,8 @@
 
             rolePermissionsList = await rolesService.GetRolesList();
             usersList = await userService.GetUsersList();
+            unAssignedUsersList = await userRoleService.GetUnAssignedUsersList(filters);
+
         }
         catch (Exception ex)
         {
@@ -328,7 +334,7 @@
             return;
 
         currentPage = newPage;
-        filters.PageNumber = currentPage; 
+        filters.PageNumber = currentPage;
         await LoadData();
     }
 
@@ -366,4 +372,52 @@
             toastRef.Show($"Error: {ex.Message}", "error");
         }
     }
+
+    private async Task OnRoleChanged()
+    {
+        try
+        {
+            var filter = new FilterModel
+            {
+                RoleId = userRoleDto.RoleId
+            };
+
+            unAssignedUsersList = await userRoleService.GetUnAssignedUsersList(filter);
+
+            if (userRoleDto.RoleId > 0)
+            {
+                selectedIds = await userRoleService.GetAssignedUsersList(filter);
+            }
+            else
+            {
+                selectedIds.Clear();
+            }
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            toastRef.Show($"Error: {ex.Message}", "error");
+        }
+    }
+    private async Task OpenAssignModal()
+    {
+        try
+        {
+            userRoleDto = new();
+            selectedIds.Clear();
+            rolePermissionsList = await rolesService.GetRolesList();
+            usersList = await userService.GetUsersList();
+            var filter = new FilterModel { RoleId = 0 };
+            unAssignedUsersList = await userRoleService.GetUnAssignedUsersList(filter);
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            toastRef.Show($"Error: {ex.Message}", "error");
+        }
+    }
+
+
 }

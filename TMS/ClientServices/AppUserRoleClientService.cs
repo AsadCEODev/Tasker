@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Json;
 using TMS.Shared.Model;
 using TMS.Shared.Model.Filters;
+using TMS.Shared.Model.Setup;
 using TMS.Shared.Pagination;
 
 namespace TMS.ClientServices
@@ -14,6 +15,43 @@ namespace TMS.ClientServices
             httpClient = _httpClient;
         }
 
+        public async Task<List<AppUsersListDto>> GetUnAssignedUsersList(FilterModel filter)
+        {
+            try
+            {
+                var response = await httpClient.PostAsJsonAsync($"{baseUrl}/GetUnAssignedUsersList",filter);
+                if (response.IsSuccessStatusCode)
+                {
+                    var lst = await response.Content.ReadFromJsonAsync<List<AppUsersListDto>>();
+                    return lst;
+                }
+                return new();
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<List<long>> GetAssignedUsersList(FilterModel filter)
+        {
+            try
+            {
+                var response = await httpClient.PostAsJsonAsync($"{baseUrl}/GetAssignedUsersList", filter);
+                if (response.IsSuccessStatusCode)
+                {
+                    var lst = await response.Content.ReadFromJsonAsync<List<long>>();
+                    return lst;
+                }
+                return new();
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
+        }
         public async Task<PaginationResponse<AppUserRoleDto>> GetAll(FilterModel filters)
         {
             try
@@ -73,6 +111,8 @@ namespace TMS.ClientServices
 
     public interface IAppUserRoleClientService
     {
+        Task<List<AppUsersListDto>> GetUnAssignedUsersList(FilterModel filter);
+        Task<List<long>> GetAssignedUsersList(FilterModel filter);
         Task<PaginationResponse<AppUserRoleDto>> GetAll(FilterModel filters);
         Task<bool> SaveOrUpdate(AppUserRoleDto dto);
         Task<bool> DeleteAsync(long id);
