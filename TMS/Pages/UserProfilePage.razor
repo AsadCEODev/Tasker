@@ -264,9 +264,7 @@
             if (result == 1)
             {
                 toastRef.Show("Profile updated successfully!", "success");
-                selectedImageFile = null; // Clear selected file reference
-                previewImageUrl = null;   // Clear preview
-                await GetCurrentUserInfo();
+                
              
             }
             else if (result == -1)
