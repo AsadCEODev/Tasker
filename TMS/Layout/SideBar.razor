@@ -1,152 +1,209 @@
-﻿@inject IJSRuntime JS
+﻿@using TMS.ClientServices
+@using TMS.Shared.Enum
+@using TMS.Shared.Model
+@inject IJSRuntime JS
 @inject NavigationManager NavManager
+@inject IAppRoleScreensClientService appRoleScreensService
 
 <div class="main-menu menu-fixed menu-light menu-accordion menu-shadow" data-scroll-to-active="true">
     <div class="navbar-header">
         <ul class="nav navbar-nav flex-row">
             <li class="nav-item me-auto">
             </li>
-            <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pe-0" data-bs-toggle="collapse"><i class="d-block d-xl-none text-primary toggle-icon font-medium-4" data-feather="x"></i><i class="d-none d-xl-block collapse-toggle-icon font-medium-4  text-primary" data-feather="disc" data-ticon="disc"></i></a></li>
+            <li class="nav-item nav-toggle">
+                <a class="nav-link modern-nav-toggle pe-0" data-bs-toggle="collapse">
+                    <i class="d-block d-xl-none text-primary toggle-icon font-medium-4" data-feather="x"></i>
+                    <i class="d-none d-xl-block collapse-toggle-icon font-medium-4 text-primary" data-feather="disc" data-ticon="disc"></i>
+                </a>
+            </li>
         </ul>
     </div>
     <div class="shadow-bottom"></div>
     <div class="main-menu-content">
         <ul class="navigation">
-            <li class="nav-item">
-                <NavLink href="/" Match="NavLinkMatch.All"><i data-feather="home"></i><span class="menu-title text-truncate" data-i18n="Dashboards">Dashboards</span></NavLink>
 
-            </li>
-            <li>
-                <NavLink href="/Projects">
-                    <i data-feather="folder"></i><span>Projects</span>
+            <!-- Dashboard (Usually open for everyone) -->
+            <li class="nav-item">
+                <NavLink href="/" Match="NavLinkMatch.All">
+                    <i data-feather="home"></i><span class="menu-title text-truncate" data-i18n="Dashboards">Dashboards</span>
                 </NavLink>
             </li>
-            <li class="nav-item has-sub @(settingsOpen ? "open" : "")">
 
-                <a href="#"
-                   class="d-flex align-items-center"
-                   @onclick="ToggleSettings"
-                   @onclick:preventDefault="true">
+            <!-- Projects -->
+            @if (CanViewScreen(AppScreenEnum.Projects))
+            {
+                <li>
+                    <NavLink href="/Projects">
+                        <i data-feather="folder"></i><span>Projects</span>
+                    </NavLink>
+                </li>
+            }
 
-                    <i data-feather="settings"></i>
-                    <span>Settings</span>
-                </a>
+            <!-- Settings Dropdown -->
+            @if (CanViewScreen(AppScreenEnum.Departments) || CanViewScreen(AppScreenEnum.Designations) || CanViewScreen(AppScreenEnum.Users) || CanViewScreen(AppScreenEnum.AssignProjects))
+            {
+                <li class="nav-item has-sub @(settingsOpen ? "open" : "")">
+                    <a href="#" class="d-flex align-items-center" @onclick="ToggleSettings" @onclick:preventDefault="true">
+                        <i data-feather="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                    <ul class="menu-content" style="display:@(settingsOpen ? "block" : "none")">
+                        @if (CanViewScreen(AppScreenEnum.Departments))
+                        {
+                            <li>
+                                <NavLink href="/Departments">
+                                    <i data-feather="grid"></i><span>Departments</span>
+                                </NavLink>
+                            </li>
+                        }
+                        @if (CanViewScreen(AppScreenEnum.Designations))
+                        {
+                            <li>
+                                <NavLink href="/Designations">
+                                    <i data-feather="compass"></i><span>Designations</span>
+                                </NavLink>
+                            </li>
+                        }
+                        @if (CanViewScreen(AppScreenEnum.Users))
+                        {
+                            <li>
+                                <NavLink href="/UserPage">
+                                    <i data-feather="users"></i><span>Users</span>
+                                </NavLink>
+                            </li>
+                        }
+                        @if (CanViewScreen(AppScreenEnum.AssignProjects))
+                        {
+                            <li>
+                                <NavLink href="/AssignProject">
+                                    <i data-feather="folder-plus"></i><span>Assign Project</span>
+                                </NavLink>
+                            </li>
+                        }
+                    </ul>
+                </li>
+            }
 
-                <ul class="menu-content"
-                    style="display:@(settingsOpen ? "block" : "none")">
-                   
-                    <li>
-                        <NavLink href="/Departments">
-                            <i data-feather="grid"></i><span>Departments</span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink href="/Designations">
-                            <i data-feather="compass"></i><span>Designations</span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink href="/UserPage">
-                            <i data-feather="users"></i><span>Users</span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink href="/AssignProject">
-                            <i data-feather="folder-plus"></i><span>Assign Project</span>
-                        </NavLink>
-                    </li>
-                  
+            <!-- Roles & Permissions Dropdown -->
+            @if (CanViewScreen(AppScreenEnum.CreateRoles) || CanViewScreen(AppScreenEnum.AssignRoles))
+            {
+                <li class="nav-item has-sub @(rolesAndPermissions ? "open" : "")">
+                    <a href="#" class="d-flex align-items-center" @onclick="ToggleRolesAndPermissions" @onclick:preventDefault="true">
+                        <i data-feather="shield"></i>
+                        <span>Roles & Permissions</span>
+                    </a>
+                    <ul class="menu-content" style="display:@(rolesAndPermissions ? "block" : "none")">
+                        @if (CanViewScreen(AppScreenEnum.CreateRoles))
+                        {
+                            <li>
+                                <NavLink href="/RolesPage">
+                                    <i data-feather="circle"></i><span>Setup Roles</span>
+                                </NavLink>
+                            </li>
+                        }
+                        @if (CanViewScreen(AppScreenEnum.AssignRoles))
+                        {
+                            <li>
+                                <NavLink href="/AssignRoles">
+                                    <i data-feather="circle"></i><span>Assign Roles</span>
+                                </NavLink>
+                            </li>
+                        }
+                    </ul>
+                </li>
+            }
 
-                </ul>
+            <!-- Create Tasks -->
+            @if (CanViewScreen(AppScreenEnum.CreateTasks))
+            {
+                <li>
+                    <NavLink href="/Tasks"><i data-feather="clipboard"></i><span>Create Tasks</span></NavLink>
+                </li>
+            }
 
-            </li>
-            <li class="nav-item has-sub @(rolesAndPermissions ? "open" : "")">
+            <!-- Todo Tasks -->
+            @if (CanViewScreen(AppScreenEnum.TodoTasks))
+            {
+                <li>
+                    <NavLink href="/TodoTasks"><i data-feather="check-square"></i><span>Todo Tasks</span></NavLink>
+                </li>
+            }
 
-                <a href="#"
-                   class="d-flex align-items-center"
-                   @onclick="ToggleRolesAndPermissions"
-                   @onclick:preventDefault="true">
+            <!-- Calendar -->
+            @if (CanViewScreen(AppScreenEnum.Calendar))
+            {
+                <li>
+                    <NavLink href="/Calendar"><i data-feather="calendar"></i><span>Calendar</span></NavLink>
+                </li>
+            }
 
-                    <i data-feather="shield"></i>
-                    <span>Roles & Permissions</span>
-                </a>
+            <!-- Chat Dropdown -->
+            @if (CanViewScreen(AppScreenEnum.UsersChat) || CanViewScreen(AppScreenEnum.Channels))
+            {
+                <li class="nav-item has-sub @(chatOpen ? "open" : "")">
+                    <a href="#" class="d-flex align-items-center" @onclick="ToggleChats" @onclick:preventDefault="true">
+                        <i data-feather="message-square"></i>
+                        <span>Chat</span>
+                    </a>
+                    <ul class="menu-content" style="display:@(chatOpen ? "block" : "none")">
+                        @if (CanViewScreen(AppScreenEnum.UsersChat))
+                        {
+                            <li>
+                                <NavLink href="/UsersChat"><i data-feather="user"></i><span>Users Chat</span></NavLink>
+                            </li>
+                        }
+                        @if (CanViewScreen(AppScreenEnum.Channels))
+                        {
+                            <li>
+                                <NavLink href="/Channels"><i data-feather="hash"></i><span>Channels</span></NavLink>
+                            </li>
+                        }
+                    </ul>
+                </li>
+            }
 
-                <ul class="menu-content"
-                    style="display:@(rolesAndPermissions ? "block" : "none")">
-
-                   
-                    <li>
-                        <NavLink href="/RolesPage">
-                            <i data-feather="circle"></i><span>Setup Roles</span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink href="/AssignRoles">
-                            <i data-feather="circle"></i><span>Assign Roles</span>
-                        </NavLink>
-                    </li>
-
-                    
-
-                </ul>
-
-            </li>
-            <li>
-                <NavLink href="/Tasks"><i data-feather="clipboard"></i><span>Create Tasks</span></NavLink>
-            </li>
-            <li>
-                <NavLink href="/TodoTasks"><i data-feather="check-square"></i><span>Todo Tasks</span></NavLink>
-            </li>
-            <li>
-                <NavLink><i data-feather="calendar"></i><span>Calendar</span></NavLink>
-            </li>
-            <li class="nav-item has-sub @(chatOpen ? "open" : "")">
-
-                <a href="#"
-                   class="d-flex align-items-center"
-                   @onclick="ToggleChats"
-                   @onclick:preventDefault="true">
-
-                    <i data-feather="message-square"></i>
-                    <span>Chat</span>
-                </a>
-
-                <ul class="menu-content"
-                    style="display:@(chatOpen ? "block" : "none")">
-                    <li>
-                        <NavLink href="/UsersChat"><i data-feather="user"></i><span>Users Chat</span></NavLink>
-                    </li>
-                    <li>
-                        <NavLink href="/Channels"><i data-feather="hash"></i><span>Channels</span> </NavLink>
-                    </li>
-                </ul>
-            </li>
-            <li>
-                <NavLink><i data-feather="bell"></i><span>Notifications</span></NavLink>
-            </li>
+            <!-- Notifications -->
+            @if (CanViewScreen(AppScreenEnum.Notifications))
+            {
+                <li>
+                    <NavLink href="/Notifications"><i data-feather="bell"></i><span>Notifications</span></NavLink>
+                </li>
+            }
         </ul>
     </div>
 </div>
 
 @code {
+    private List<AppRolesScreenDto> appRoleScreensList = new();
 
     bool settingsOpen;
     bool rolesAndPermissions;
     bool chatOpen;
 
-    void ToggleSettings()
-    {
-        settingsOpen = !settingsOpen;
+    void ToggleSettings() => settingsOpen = !settingsOpen;
+    void ToggleChats() => chatOpen = !chatOpen;
+    void ToggleRolesAndPermissions() => rolesAndPermissions = !rolesAndPermissions;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCurrentUserPermissions();
     }
-    void ToggleChats()
-    {
-        chatOpen = !chatOpen;
 
+    private async Task GetCurrentUserPermissions()
+    {
+        try
+        {
+            appRoleScreensList = await appRoleScreensService.GetUserPermissions();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
     }
-    void ToggleRolesAndPermissions()
-    {
-        rolesAndPermissions = !rolesAndPermissions;
 
+    // Helper method jo check karega ke user ke paas screen ka CanView right hai ya nahi
+    private bool CanViewScreen(AppScreenEnum screen)
+    {
+        return appRoleScreensList.Any(x => x.ScreenId == (int)screen && x.CanView);
     }
 }

@@ -29,6 +29,21 @@ namespace TSM.API.Services
             return query;
         }
 
+        public async Task<List<AppUserRole>> GetUserPermissionList()
+        {
+            try
+            {
+                var query = BaseQuery();
+                var lst = await query.ToListAsync();
+                return lst;
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         public async Task<List<AppUsersList>> GetUnAssignedUsersList(FilterModel filter)
         {
             try
@@ -192,6 +207,7 @@ namespace TSM.API.Services
 
     public interface IAppUserRoleService
     {
+        Task<List<AppUserRole>> GetUserPermissionList();
         Task<List<AppUsersList>> GetUnAssignedUsersList(FilterModel filter);
         Task<List<long>> GetSelelctedUsers(FilterModel filter);
         Task<PaginationResponse<AppUserRole>> GetAll(FilterModel filters);

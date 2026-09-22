@@ -29,7 +29,6 @@ namespace TMS.Shared.Model
         public string? RoleName { get; set; }
         public int ScreenId { get; set; }
         public string? ScreenName { get; set; }
-
         public bool CanView { get; set; }
         public bool CanAdd { get; set; }
         public bool CanEdit { get; set; }

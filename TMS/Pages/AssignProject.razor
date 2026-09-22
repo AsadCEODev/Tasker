@@ -1,5 +1,7 @@
 ﻿@page "/AssignProject"
 @using TMS.Shared.Model.Setup
+@using TMS.Shared.Model
+@using TMS.Shared.Enum
 @using TMS.ClientServices
 @using TMS.Components
 @using TMS.Shared.Pagination
@@ -10,6 +12,7 @@
 @inject IAssignProjectClientService thisService;
 @inject IUserClientService userService;
 @inject ISetupProjectClientService projectService;
+@inject IAppRoleScreensClientService appRoleScreensService
 @inject IJSRuntime JS
 
 <div class="content-wrapper container-xxl-fluid p-0">
@@ -95,7 +98,7 @@
                                            style="width:200px;"
                                            placeholder="Search..." @oninput="HandleInput" />
                                 </div>
-                                
+
                                 <div class="dropdown">
                                     <button class="btn btn-outline-secondary dropdown-toggle"
                                             data-bs-toggle="dropdown">
@@ -110,11 +113,13 @@
 
                                     </ul>
                                 </div>
+                                @if (appRoleScreensList.Any(x => x.ScreenId == (int)AppScreenEnum.AssignProjects && x.CanAdd))
+                                {
 
-                                <button class="btn btn-primary" @onclick="OpenModel">
-                                    Assign Project
-                                </button>
-
+                                    <button class="btn btn-primary" @onclick="OpenModel">
+                                        Assign Project
+                                    </button>
+                                }
                             </div>
 
                         </div>
@@ -146,7 +151,11 @@
                                         <th>Full Name</th>
                                         <th>CNIC</th>
                                         <th>Assigned Projects</th>
-                                        <th>ACTIONS</th>
+                                        @if (appRoleScreensList.Any(x => x.ScreenId == (int)AppScreenEnum.AssignProjects && x.CanDelete))
+                                        {
+                                            <th>ACTIONS</th>
+
+                                        }
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -163,11 +172,14 @@
                                                 <td><span>@user.UserObj.FullName</span></td>
                                                 <td><span>@user.UserObj.CNIC</span></td>
                                                 <td><span>@user.ProjectObj.ProjectName</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-icon btn-outline-danger" @onclick="() => RemoveAssignedProjct(user.Id)">
-                                                        <i data-feather="trash" class="font-medium-3"></i>
-                                                    </button>
-                                                </td>
+                                                @if (appRoleScreensList.Any(x => x.ScreenId == (int)AppScreenEnum.AssignProjects && x.CanDelete))
+                                                {
+                                                    <td>
+                                                        <button class="btn btn-sm btn-icon btn-outline-danger" @onclick="() => RemoveAssignedProjct(user.Id)">
+                                                            <i data-feather="trash" class="font-medium-3"></i>
+                                                        </button>
+                                                    </td>
+                                                }
                                             </tr>
                                         }
                                     }
@@ -179,7 +191,7 @@
                     <div class="d-flex justify-content-between align-items-center mt-3">
                         @if (userProjectsList != null && userProjectsList.TotalCount > 0)
                         {
-                            
+
                             <span class="text-muted">
                                 Showing page @userProjectsList.PageIndex of @userProjectsList.TotalPages
                             </span>
@@ -220,7 +232,7 @@
             <!-- list and filter end -->
         </section>
         <!-- users list ends -->
-        
+
     </div>
 </div>
 
@@ -237,20 +249,20 @@
                            Items="@usersList"
                            ValueSelector="@(u => u.Id)"
                            TextSelector="@(u => u.UserName)"
-                           @bind-Value="assignProjectsDto.UserId"/>
+                           @bind-Value="assignProjectsDto.UserId" />
             </div>
             <div class="mb-1">
                 <KrSelect2 TItem="SetupProjectDto"
                            TValue="int"
                            Label="Project"
-                           IsMultiple = "true"
+                           IsMultiple="true"
                            Items="@projectsList"
                            ValueSelector="@(u => u.Id)"
                            TextSelector="@(u => u.ProjectName)"
                            @bind-Values="selectedIds" />
             </div>
         </div>
-        
+
         <div class="modal-footer">
             <button type="submit" class="btn btn-primary">
                 @(UserProjectDto.Id > 0 ? "Update" : "Save")
@@ -268,9 +280,9 @@
     private int currentPage = 1;
     private int pageSize = 10;
 
-    private int TotalProjects =0;
-    private int TotalActiveProjects =0;
-    private int TotalInActiveProjects =0;
+    private int TotalProjects = 0;
+    private int TotalActiveProjects = 0;
+    private int TotalInActiveProjects = 0;
     private List<SetupUserDto> usersList = new();
     private List<SetupProjectDto> projectsList = new();
     private List<int> selectedIds = new();
@@ -284,8 +296,12 @@
     private string queryString = string.Empty;
     private Timer? debounceTimer;
 
+    private List<AppRolesScreenDto> appRoleScreensList = new();
+
+
     protected override async Task OnInitializedAsync()
     {
+        await GetCurrentUserPermissions();
         await LoadData();
         await LoadLists();
     }
@@ -369,7 +385,7 @@
         try
         {
             assignProjectsDto.ProjectIds = selectedIds;
-            var  result = await thisService.Save(assignProjectsDto);
+            var result = await thisService.Save(assignProjectsDto);
 
             if (result)
             {
@@ -417,6 +433,19 @@
         catch (Exception)
         {
             // Error log karein
+        }
+    }
+
+    private async Task GetCurrentUserPermissions()
+    {
+        try
+        {
+            appRoleScreensList = await appRoleScreensService.GetUserPermissions();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
         }
     }
 

@@ -22,6 +22,7 @@ namespace TMS.API.Services
             services.AddScoped<IAppScreenService, AppScreenService>();
             services.AddScoped<IAppRolesService, AppRolesService>();
             services.AddScoped<IAppUserRoleService, AppUserRoleService>();
+            services.AddScoped<IAppRoleScreensService, AppRoleScreensService>();
 
             
             return services;

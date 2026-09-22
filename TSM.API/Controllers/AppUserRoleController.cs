@@ -20,6 +20,27 @@ namespace TSM.API.Controllers
             thisService = appUserRoleService;
         }
 
+        [HttpGet("GetUserPermissionsList")]
+        public async Task<IActionResult> GetUserPermissionsList()
+        {
+            try
+            {
+                var lst = await thisService.GetUserPermissionList();
+                if(lst == null)
+                {
+                    return NotFound(new());
+                }
+                var converted = lst.Adapt<List<AppUserRoleDto>>();
+                return Ok(converted);
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
+        }
+
+
         [HttpPost("GetUnAssignedUsersList")]
         public async Task<IActionResult> GetUnAssignedUsersList(FilterModel filter)
         {

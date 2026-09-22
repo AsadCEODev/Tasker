@@ -14,7 +14,24 @@ namespace TMS.ClientServices
         {
             httpClient = _httpClient;
         }
+        public async Task<List<AppUserRoleDto>> GetUserPermissionsList()
+        {
+            try
+            {
+                var response = await httpClient.GetAsync($"{baseUrl}/GetUserPermissionsList");
+                if (response.IsSuccessStatusCode)
+                {
+                    var lst = await response.Content.ReadFromJsonAsync<List<AppUserRoleDto>>();
+                    return lst;
+                }
+                return new();
+            }
+            catch (Exception ex)
+            {
 
+                throw new Exception(ex.Message);
+            }
+        }
         public async Task<List<AppUsersListDto>> GetUnAssignedUsersList(FilterModel filter)
         {
             try
@@ -111,6 +128,7 @@ namespace TMS.ClientServices
 
     public interface IAppUserRoleClientService
     {
+        Task<List<AppUserRoleDto>> GetUserPermissionsList();
         Task<List<AppUsersListDto>> GetUnAssignedUsersList(FilterModel filter);
         Task<List<long>> GetAssignedUsersList(FilterModel filter);
         Task<PaginationResponse<AppUserRoleDto>> GetAll(FilterModel filters);

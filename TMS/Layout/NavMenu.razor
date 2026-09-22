@@ -1,12 +1,17 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using TMS.AuthStateProvider
+@using TMS.ClientServices
 @using TMS.ClientServices.StateUser
+@using TMS.Shared.Enum
+@using TMS.Shared.Model
 @using TMS.Shared.Model.Setup
+@using TMS.Shared.Pagination
 @inject IJSRuntime JS
 @inject IJSRuntime JSRuntime
 @inject UserStateService UserState
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
+@inject IAppRoleScreensClientService appRoleScreensService
 
 <!-- BEGIN: Header-->
 <nav class="header-navbar navbar navbar-expand-lg align-items-center floating-nav navbar-light navbar-shadow container-xxl-fluid">
@@ -72,8 +77,29 @@
                     </span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-user">
-                    <a class="dropdown-item" href="/UserProfilePage"><i class="me-50" data-feather="user"></i> Profile</a><a class="dropdown-item" href="app-email.html"><i class="me-50" data-feather="mail"></i> Inbox</a><a class="dropdown-item" href="app-todo.html"><i class="me-50" data-feather="check-square"></i> Task</a><a class="dropdown-item" href="app-chat.html"><i class="me-50" data-feather="message-square"></i> Chats</a>
-                    <div class="dropdown-divider"></div><a class="dropdown-item" href="page-account-settings-account.html"><i class="me-50" data-feather="settings"></i> Settings</a><a class="dropdown-item" href="page-pricing.html"><i class="me-50" data-feather="credit-card"></i> Pricing</a><a class="dropdown-item" href="page-faq.html"><i class="me-50" data-feather="help-circle"></i> FAQ</a><a class="dropdown-item" @onclick="HandleLogout"><i class="me-50" data-feather="power"></i> Logout</a>
+                    @if (appRoleScreensList.Any(x => x.ScreenId == (int)AppScreenEnum.UserProfile && x.CanView))
+                    {
+                        <a class="dropdown-item" href="/UserProfilePage"><i class="me-50" data-feather="user"></i> Profile</a>
+                    }
+                    @if (appRoleScreensList.Any(x => x.ScreenId == (int)AppScreenEnum.Inbox && x.CanView))
+                    {
+                        <a class="dropdown-item" href="app-email.html"><i class="me-50" data-feather="mail"></i> Inbox</a>            
+                    }
+                    @if (appRoleScreensList.Any(x => x.ScreenId == (int)AppScreenEnum.TodoTasks && x.CanView))
+                    {
+                        <a class="dropdown-item" href="app-todo.html"><i class="me-50" data-feather="check-square"></i> Todo Task</a>            
+                    }
+                    @if (appRoleScreensList.Any(x => x.ScreenId == (int)AppScreenEnum.Chat && x.CanView))
+                    {
+                        <a class="dropdown-item" href="app-chat.html"><i class="me-50" data-feather="message-square"></i> Chats</a>
+                    }
+                    <div class="dropdown-divider"></div>
+                    @if (appRoleScreensList.Any(x => x.ScreenId == (int)AppScreenEnum.Settings && x.CanView))
+                    {
+                        <a class="dropdown-item" href="page-account-settings-account.html"><i class="me-50" data-feather="settings"></i> Settings</a>            
+                    }
+
+                    <a class="dropdown-item" @onclick="HandleLogout"><i class="me-50" data-feather="power"></i> Logout</a>
                 </div>
             </li>
         </ul>
@@ -184,6 +210,8 @@
     private SetupUserDto userDto { get; set; } = new();
     private bool isDark;
     private string previewImageUrl;
+    
+    private List<AppRolesScreenDto> appRoleScreensList = new();
 
     private async Task ToggleTheme()
     {
@@ -203,7 +231,7 @@
         try
         {
             userDto = await UserState.GetCurrentUserAsync();
-
+            appRoleScreensList = await appRoleScreensService.GetUserPermissions();
         }
         catch (Exception ex)
         {
@@ -224,6 +252,9 @@
         // Fallback UI Avatar
         return $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(userDto?.FullName ?? "User")}&background=random&color=fff&size=128";
     }
+
+
+
 }
 
 
